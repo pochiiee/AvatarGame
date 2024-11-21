@@ -1,9 +1,8 @@
 package avatar;
 
 import javax.swing.*;
-import java.awt.event.*;
 import java.awt.*;
-import java.awt.image.*;
+import java.awt.event.*;
 
 public class WelcomeWindow extends JFrame {
 
@@ -14,26 +13,33 @@ public class WelcomeWindow extends JFrame {
         ImageIcon icon = new ImageIcon("src/welcomee.png");
         backgroundImage = icon.getImage();
 
-        // Get the image's original dimensions
-        int imageWidth = backgroundImage.getWidth(this);
-        int imageHeight = backgroundImage.getHeight(this);
-
-        // Set the window size based on the image's aspect ratio
-        double aspectRatio = (double) imageWidth / imageHeight;
-        int windowWidth = 800; // Desired window width
-        int windowHeight = (int) (windowWidth / aspectRatio);
-
-        setTitle("Welcome Gamer");
-        setSize(windowWidth, windowHeight); // Set the size based on the calculated aspect ratio
-        setLocationRelativeTo(null); // Center the window
+        setSize(Toolkit.getDefaultToolkit().getScreenSize()); // Set to full-screen size
+        setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(null); // Use null layout for absolute positioning
-     
-    
-     // Add Start Button
+
+        // Disable resizing
+        setResizable(false);
+
+        // Set the frame to full-screen mode
+        setExtendedState(JFrame.MAXIMIZED_BOTH); 
+
+        // Create a custom panel for the background
+        JPanel backgroundPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                // Draw the background image
+                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            }
+        };
+        backgroundPanel.setLayout(null); // Use null layout for absolute positioning
+        setContentPane(backgroundPanel); // Set as content pane for the frame
+
+        // Add Start Button
         JButton startButton = new JButton("Start");
-        startButton.setFont(new Font("Arial", Font.BOLD, 16));
-        startButton.setBounds((windowWidth - 150) / 2, windowHeight - 100, 150, 40); // Position the button
+        startButton.setFont(new Font("Arial", Font.BOLD, 18));
+        int buttonWidth = 210;
+        int buttonHeight = 50;
 
         // Style the button
         startButton.setBackground(new Color(227, 141, 60)); // Lighter brownish-orange color
@@ -53,35 +59,32 @@ public class WelcomeWindow extends JFrame {
             }
         });
 
-
-
-        add(startButton);
+        backgroundPanel.add(startButton);
 
         // Action Listener for Start Button
-        startButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                new LoginWindow(); // Open Login Window
-                dispose(); // Close this window
+        startButton.addActionListener(e -> {
+            new LoginWindow(); // Pass the current dimensions
+            dispose(); // Close this window
+        });
+
+        // Add a component listener to handle resizing (adjust as needed)
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                int frameWidth = getWidth();
+                int frameHeight = getHeight();
+
+                // Update button position and size proportionally
+                int buttonX = (frameWidth - buttonWidth) / 2;
+                int buttonY = frameHeight - 160; // Adjusted vertical position
+                startButton.setBounds(buttonX, buttonY, buttonWidth, buttonHeight);
+
+                // Repaint the background to fit the new size
+                backgroundPanel.repaint();
             }
         });
 
         setVisible(true);
-    }
-
-    @Override
-    public void paint(Graphics g) {
-        super.paint(g);
-
-        // Get the insets (title bar height and borders)
-        Insets insets = getInsets();
-        int titleBarHeight = insets.top;
-
-        // Adjust background image to start below the title bar
-        g.drawImage(backgroundImage, 0, titleBarHeight, getWidth(), getHeight() - titleBarHeight, this);
-
-        // Set text properties
-        g.setColor(new Color(205, 133, 63)); // Light brown text color
-        g.setFont(new Font("Serif", Font.BOLD, 50)); // Elegant font
     }
 
     public static void main(String[] args) {

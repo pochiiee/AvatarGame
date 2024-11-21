@@ -3,54 +3,57 @@ package avatar;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import javax.sound.sampled.*;
+import java.io.File;
+import java.io.IOException;
 
 public class StoryWindow extends JFrame {
 
-    private int currentImageIndex = 0; // Track current image
-    private JLabel backgroundLabel;   // Label for the background
-    private String[] imagePaths = {   // Paths for the images
+    private int currentImageIndex = 0; // Para malaman kung nasan na sa images
+    private JLabel backgroundLabel;   // Background label para sa images
+    private String[] imagePaths = {   // Image paths
         "src/story/story1.png",
         "src/story/story2.png",
         "src/story/story3.png",
         "src/story/story4.png",
     };
-    private Image backgroundImage;    // Current background image
+    
+    private Clip clip; // Clip para sa background music
+    private long lastStopPosition = 0; // Variable to store last stop position in microseconds
 
     public StoryWindow() {
-        // Load the first image to get its dimensions
-        loadImage(currentImageIndex); // Load initial image
+        // I-remove yung decorations ng window (para walang resizable at X/minimize/maximize buttons)
+        setUndecorated(true);
 
-        int imageWidth = backgroundImage.getWidth(null);
-        int imageHeight = backgroundImage.getHeight(null);
+        // I-set to fullscreen
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        gd.setFullScreenWindow(this);
 
-        // Adjust the window size to match the LoginWindow
-        int windowWidth = 800; // Same width as LoginWindow
-        int windowHeight = 490;
+        // Hindi na pwedeng i-resize ang window
+        setResizable(false);
 
-        // Set the window size based on the calculated aspect ratio
-        setTitle("Story");
-        setSize(windowWidth, windowHeight);
-        setLocationRelativeTo(null); // Center the window
+        // Pag walang decoration, pwede natin i-center ang window manually
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        setBounds(0, 0, screenSize.width, screenSize.height); // Fullscreen window dimensions
+
+        // I-setup ang layout ng JFrame
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(null); // Use null layout for absolute positioning
+        setLayout(null);
 
-        // Add the background label
+        // Add ng background label
         backgroundLabel = new JLabel();
-        backgroundLabel.setBounds(0, 0, windowWidth, windowHeight); // Match the label size with window size
-        backgroundLabel.setVerticalAlignment(SwingConstants.BOTTOM); // Align image to bottom
-        setBackgroundImage(currentImageIndex); // Set initial background image
+        backgroundLabel.setBounds(0, 0, screenSize.width, screenSize.height); // Fullscreen background
+        setBackgroundImage(currentImageIndex); // First background image
         add(backgroundLabel);
-    
-        // Next button
+
+        // Add ng "Next" button
         JButton nextButton = new JButton("Next");
-        nextButton.setBounds(windowWidth - 120, windowHeight - 60, 100, 30); // Smaller size and lower position
+        nextButton.setBounds(screenSize.width - 180, screenSize.height - 100, 100, 30); // Adjusted X and Y position
         nextButton.setBackground(new Color(173, 216, 230)); // Light blue
         nextButton.setOpaque(true);
         nextButton.setBorderPainted(false);
 
-        nextButton.setBorderPainted(false);
-
-        // Hover effect
+        // Hover effect para sa "Next" button
         nextButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -63,38 +66,67 @@ public class StoryWindow extends JFrame {
             }
         });
 
-        // Next button action
-        nextButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (currentImageIndex < imagePaths.length - 1) {
-                    currentImageIndex++;
-                    loadImage(currentImageIndex); // Update image
-                    setBackgroundImage(currentImageIndex); // Update background label
-                } else {
-                    new RoadMapWindow(); // Proceed to Road Map
-                    dispose();
-                }
+        // Action listener para sa "Next" button
+        nextButton.addActionListener(e -> {
+            if (currentImageIndex == 1) { // After 0.17 seconds
+                stopBackgroundMusic(); // Stop music at 0.17
+            } else if (currentImageIndex == 2) { // After 0.24 seconds
+                stopBackgroundMusic(); // Stop music at 0.24
+            }
+
+            if (currentImageIndex < imagePaths.length - 1) {
+                currentImageIndex++;
+                setBackgroundImage(currentImageIndex); // Update image
+                playBackgroundMusic(); // Continue music from the next point after the stop
+            } else {
+                // Proceed to next window or close
+                new RoadMapWindow();
+                dispose();
             }
         });
 
-        backgroundLabel.add(nextButton); // Add the button to the background label
+        backgroundLabel.add(nextButton); // Attach the button to the background
+        setVisible(true); // I-display ang window
+
+        // Play the background music for the first time
+        playBackgroundMusic();
     }
 
-    // Method to load and set image
-    private void loadImage(int index) {
-        ImageIcon icon = new ImageIcon(imagePaths[index]);
-        backgroundImage = icon.getImage();
-    }
-
+    // Method para mag-load ng background image
     private void setBackgroundImage(int index) {
         ImageIcon icon = new ImageIcon(imagePaths[index]);
-        int windowWidth = getWidth();
-        int windowHeight = getHeight();
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-        // Scale the image to fit the entire window, preserving the aspect ratio
-        Image scaledImage = icon.getImage().getScaledInstance(windowWidth, windowHeight, Image.SCALE_SMOOTH);
+        // Scale image para magfit sa buong screen
+        Image scaledImage = icon.getImage().getScaledInstance(screenSize.width, screenSize.height, Image.SCALE_SMOOTH);
         backgroundLabel.setIcon(new ImageIcon(scaledImage));
     }
 
+    // Method para mag-play ng background music
+    private void playBackgroundMusic() {
+        try {
+            File musicPath = new File("src/voiceOver.wav"); // Path to your .wav file
+            if (musicPath.exists()) {
+                if (clip == null || !clip.isRunning()) { // If music is not already playing, start it
+                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(musicPath);
+                    clip = AudioSystem.getClip();
+                    clip.open(audioInput);
+                    clip.loop(Clip.LOOP_CONTINUOUSLY); // Loop the music continuously
+                    clip.setMicrosecondPosition(lastStopPosition); // Start from the last stopped position
+                }
+            } else {
+                System.out.println("Music file not found.");
+            }
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Method para mag-stop ng music
+    private void stopBackgroundMusic() {
+        if (clip != null && clip.isRunning()) {
+            lastStopPosition = clip.getMicrosecondPosition(); // Save the current position
+            clip.stop(); // Stop the music
+        }
+    }
 }

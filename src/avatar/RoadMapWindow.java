@@ -18,17 +18,17 @@ public class RoadMapWindow extends JFrame {
         // Get the image's original dimensions
         int imageWidth = backgroundImage.getWidth(this);
         int imageHeight = backgroundImage.getHeight(this);
-
-        // Calculate the window size based on the image's aspect ratio
-        double aspectRatio = (double) imageWidth / imageHeight;
-        int windowWidth = 800;
-        int windowHeight = (int) (windowWidth / aspectRatio);
-
         // Set up the frame
         setTitle("Road Map");
-        setSize(windowWidth, windowHeight);
+        setSize(Toolkit.getDefaultToolkit().getScreenSize()); // Set to full-screen size
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Disable resizing
+        setResizable(false);
+
+        // Set the frame to full-screen mode
+        setExtendedState(JFrame.MAXIMIZED_BOTH); 
 
         // Create a panel for the background
         JPanel backgroundPanel = new JPanel() {
@@ -38,26 +38,26 @@ public class RoadMapWindow extends JFrame {
                 g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
             }
         };
-        backgroundPanel.setLayout(null); // No layout for free positioning
-        backgroundPanel.setBounds(0, 0, windowWidth, windowHeight);
+        backgroundPanel.setBounds(0, 0, getWidth(), getHeight());
+        backgroundPanel.setLayout(null);
 
         // Create buttons and add to the panel
         JButton game1Button = new JButton("Game 1");
-        game1Button.setBounds(50, 50, 100, 30);
+        game1Button.setBounds(95, 357, 100, 30);
         backgroundPanel.add(game1Button);
 
         JButton game2Button = new JButton("Game 2");
-        game2Button.setBounds(200, 50, 100, 30);
+        game2Button.setBounds(172, 199, 100, 30);
         game2Button.setEnabled(false); // Initially locked
         backgroundPanel.add(game2Button);
 
         JButton game3Button = new JButton("Game 3");
-        game3Button.setBounds(350, 50, 100, 30);
+        game3Button.setBounds(390, 137, 100, 30);
         game3Button.setEnabled(false); // Initially locked
         backgroundPanel.add(game3Button);
 
         JButton game4Button = new JButton("Game 4");
-        game4Button.setBounds(500, 50, 100, 30);
+        game4Button.setBounds(501, 357, 100, 30);
         game4Button.setEnabled(false); // Initially locked
         backgroundPanel.add(game4Button);
 
@@ -79,10 +79,11 @@ public class RoadMapWindow extends JFrame {
         });
 
         // Add the background panel to the frame
-        add(backgroundPanel);
+        getContentPane().add(backgroundPanel);
 
         setVisible(true);
     }
+    
     private void playGame1() {
         // Launch Game 1
         new Game1(); // Initialize Game 1
