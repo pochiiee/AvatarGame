@@ -9,17 +9,17 @@ import java.util.Random;
 public class Game1 extends JFrame {
 
     public Game1() {
-        setTitle("Snake Game");
+      
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         add(new GamePanel());
         setResizable(false);
         setLocationRelativeTo(null);
-        setVisible(true); // Make the frame visible here
+        setVisible(true);
     }
 
     class GamePanel extends JPanel implements ActionListener {
-        private final int TILE_SIZE = 20; 
+        private final int TILE_SIZE = 20;
         private final int WIDTH = 800 / TILE_SIZE;
         private final int HEIGHT = 600 / TILE_SIZE;
         private LinkedList<Point> snake;
@@ -28,10 +28,25 @@ public class Game1 extends JFrame {
         private boolean gameOver;
         private Timer timer;
         private Color snakeColor;
-        private Color foodColor;
+        private Image snakeHeadImage;
+        private Image foodImage;
+        private Image backgroundImage;
 
         public GamePanel() {
+            loadImages();
             startGame();
+        }
+
+        private void loadImages() {
+            try {
+                snakeHeadImage = new ImageIcon("src/boat.png").getImage();
+                foodImage = new ImageIcon("src/fish.png").getImage();
+                backgroundImage = new ImageIcon("src/waterbg.jpg").getImage();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error loading images: " + e.getMessage(),
+                        "Image Load Error", JOptionPane.ERROR_MESSAGE);
+                System.exit(1);
+            }
         }
 
         private void startGame() {
@@ -44,24 +59,16 @@ public class Game1 extends JFrame {
 
             setBackground(new Color(50, 50, 50)); // Background color
             setFocusable(true);
-            requestFocusInWindow(); // Ensure the panel can receive key events
+            requestFocusInWindow();
 
             addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyPressed(KeyEvent e) {
                     switch (e.getKeyCode()) {
-                        case KeyEvent.VK_UP:
-                            if (direction != 'D') direction = 'U';
-                            break;
-                        case KeyEvent.VK_DOWN:
-                            if (direction != 'U') direction = 'D';
-                            break;
-                        case KeyEvent.VK_LEFT:
-                            if (direction != 'R') direction = 'L';
-                            break;
-                        case KeyEvent.VK_RIGHT:
-                            if (direction != 'L') direction = 'R';
-                            break;
+                        case KeyEvent.VK_UP -> { if (direction != 'D') direction = 'U'; }
+                        case KeyEvent.VK_DOWN -> { if (direction != 'U') direction = 'D'; }
+                        case KeyEvent.VK_LEFT -> { if (direction != 'R') direction = 'L'; }
+                        case KeyEvent.VK_RIGHT -> { if (direction != 'L') direction = 'R'; }
                     }
                 }
             });
@@ -73,20 +80,13 @@ public class Game1 extends JFrame {
         private void spawnFood() {
             Random rand = new Random();
             do {
-                int x = rand.nextInt(WIDTH - 2) + 1;
-                int y = rand.nextInt(HEIGHT - 3) + 2;
+                // Ensure food does not spawn on edges by adding a margin of 2 tiles
+                int x = rand.nextInt(WIDTH - 4) + 2; // Avoid edges (margin of 2 tiles on left and right)
+                int y = rand.nextInt(HEIGHT - 6) + 3; // Avoid edges (margin of 3 tiles on top, bottom includes score area)
                 food = new Point(x, y);
-            } while (snake.contains(food) || !isCheckeredPosition(food));
-
-            int r = rand.nextInt(128) + 128; // Lighter colors
-            int g = rand.nextInt(128) + 128;
-            int b = rand.nextInt(128) + 128;
-            foodColor = new Color(r, g, b);
+            } while (snake.contains(food));
         }
 
-        private boolean isCheckeredPosition(Point p) {
-            return (p.x + p.y) % 2 == 0; // Checkered pattern
-        }
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -102,17 +102,16 @@ public class Game1 extends JFrame {
             Point newHead = new Point(head);
 
             switch (direction) {
-                case 'U': newHead.y--; break;
-                case 'D': newHead.y++; break;
-                case 'L': newHead.x--; break;
-                case 'R': newHead.x++; break;
+                case 'U' -> newHead.y--;
+                case 'D' -> newHead.y++;
+                case 'L' -> newHead.x--;
+                case 'R' -> newHead.x++;
             }
 
             snake.addFirst(newHead);
 
             if (newHead.equals(food)) {
-                snakeColor = foodColor; // Change snake color to food color
-                spawnFood(); // Respawn food with new color
+                spawnFood();
             } else {
                 snake.removeLast();
             }
@@ -122,7 +121,7 @@ public class Game1 extends JFrame {
             Point head = snake.getFirst();
 
             // Check for wall collisions
-            if (head.x < 0 || head.x >= WIDTH || head.y < 2 || head.y >= HEIGHT - 1) {
+            if (head.x < 1 || head.x >= WIDTH - 1 || head.y < 2 || head.y >= HEIGHT - 1) {
                 gameOver = true;
                 timer.stop();
                 showGameOver("You hit the wall!");
@@ -153,14 +152,13 @@ public class Game1 extends JFrame {
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.PLAIN_MESSAGE,
                     null,
-                    new Object[] {"Play Again", "Exit"},
+                    new Object[]{"Play Again", "Exit"},
                     "Play Again");
 
             if (response == JOptionPane.YES_OPTION) {
-                startGame(); // Restart game
+                startGame();
             } else {
-            	dispose(); // Close Game1 window
-                new RoadMapWindow(); // Open GameHub window
+                System.exit(0);
             }
         }
 
@@ -168,32 +166,38 @@ public class Game1 extends JFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
 
-            // Draw background
-            for (int i = 0; i < getWidth(); i += TILE_SIZE) {
-                for (int j = 0; j < getHeight(); j += TILE_SIZE) {
-                    g.setColor((i + j) % (TILE_SIZE * 2) == 0 ? new Color(60, 60, 60) : new Color(70, 70, 70));
-                    g.fillRect(i, j, TILE_SIZE, TILE_SIZE);
-                }
-            }
+            // Draw background image
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
 
-            // Draw score background
-            g.setColor(Color.DARK_GRAY);
+            // Draw score background (Sky blue bar)
+            g.setColor(new Color(135, 206, 235)); // Sky blue color
             g.fillRect(0, 0, getWidth(), TILE_SIZE * 2);
-
+            
             // Display score
             g.setColor(Color.WHITE);
             g.setFont(new Font("Arial", Font.BOLD, 20));
             g.drawString("Score: " + (snake.size() - 1), 10, 30);
 
+            // Size for the food and body images
+            int bodyAndFoodSize = TILE_SIZE + 5; // Small size for the body and food
+            int headSize = TILE_SIZE * 2;        // Original larger size for the head
+
             // Draw snake
-            g.setColor(snakeColor);
-            for (Point p : snake) {
-                g.fillOval(p.x * TILE_SIZE, p.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            for (int i = 0; i < snake.size(); i++) {
+                Point p = snake.get(i);
+                if (i == 0) {
+                    // Draw the snake head (boat image) with original larger size
+                    g.drawImage(snakeHeadImage, p.x * TILE_SIZE, p.y * TILE_SIZE, headSize, headSize, this);
+                } else {
+                    // Draw the body segments (fish image) with smaller size
+                    g.drawImage(foodImage, p.x * TILE_SIZE, p.y * TILE_SIZE, bodyAndFoodSize, bodyAndFoodSize, this);
+                }
             }
 
-            // Draw food
-            g.setColor(foodColor);
-            g.fillOval(food.x * TILE_SIZE, food.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            // Draw the food (fish image)
+            g.drawImage(foodImage, food.x * TILE_SIZE, food.y * TILE_SIZE, bodyAndFoodSize, bodyAndFoodSize, this);
         }
+
+
     }
 }

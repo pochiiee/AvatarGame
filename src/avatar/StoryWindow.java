@@ -105,7 +105,7 @@ public class StoryWindow extends JFrame {
     // Method para mag-play ng background music
     private void playBackgroundMusic() {
         try {
-            File musicPath = new File("src/voiceOver.wav"); // Path to your .wav file
+            File musicPath = new File("src/.wav"); // Path to your .wav file
             if (musicPath.exists()) {
                 if (clip == null || !clip.isRunning()) { // If music is not already playing, start it
                     AudioInputStream audioInput = AudioSystem.getAudioInputStream(musicPath);

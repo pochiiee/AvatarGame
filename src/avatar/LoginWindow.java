@@ -151,6 +151,7 @@ public class LoginWindow extends JFrame {
                 g.drawString(loadingText, x, y);
             }
         };
+        
         loadingPanel.setLayout(null);
         loadingPanel.setBounds(0, 0, 300, 200); // Set to 300x200 size
         add(loadingPanel);
