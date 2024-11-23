@@ -10,8 +10,7 @@ public class LoginWindow extends JFrame {
     private JProgressBar progressBar;
 
     public LoginWindow() {
-        
-       
+
         setSize(Toolkit.getDefaultToolkit().getScreenSize()); // Set to full-screen size
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -20,8 +19,7 @@ public class LoginWindow extends JFrame {
         setResizable(false);
 
         // Set the frame to full-screen mode
-        setExtendedState(JFrame.MAXIMIZED_BOTH); 
-
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         // Load the background image
         ImageIcon icon = new ImageIcon("src/login.png");
@@ -38,40 +36,63 @@ public class LoginWindow extends JFrame {
         backgroundPanel.setLayout(null);
         setContentPane(backgroundPanel); // Set as content pane for the frame
 
-     // Add UI Components
+        // Add UI Components
         JLabel userLabel = new JLabel("Username");
-        userLabel.setBounds(940, 350, 200, 40); // Moved further to the left
+        userLabel.setBounds(940, 350, 200, 40);
         userLabel.setForeground(new Color(101, 67, 33));
-        userLabel.setFont(new Font("Arial", Font.BOLD, 18)); // Bigger font for better visibility
+        userLabel.setFont(new Font("Arial", Font.BOLD, 18));
         backgroundPanel.add(userLabel);
 
         JTextField usernameField = new JTextField();
-        usernameField.setBounds(1120, 350, 250, 40); // Moved further to the left for more right margin
-        usernameField.setFont(new Font("Arial", Font.PLAIN, 16)); // Font size for better readability
+        usernameField.setBounds(1120, 350, 250, 40);
+        usernameField.setFont(new Font("Arial", Font.PLAIN, 16));
         backgroundPanel.add(usernameField);
 
         JLabel passLabel = new JLabel("Password");
-        passLabel.setBounds(940, 470, 200, 40); // Moved further to the left
+        passLabel.setBounds(940, 470, 200, 40);
         passLabel.setForeground(new Color(101, 67, 33));
-        passLabel.setFont(new Font("Arial", Font.BOLD, 18)); // Bigger font for better visibility
+        passLabel.setFont(new Font("Arial", Font.BOLD, 18));
         backgroundPanel.add(passLabel);
 
         JPasswordField passwordField = new JPasswordField();
-        passwordField.setBounds(1120, 470, 250, 40); // Moved further to the left for more right margin
-        passwordField.setFont(new Font("Arial", Font.PLAIN, 16)); // Font size for better readability
+        passwordField.setBounds(1120, 470, 250, 40);
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 16));
         backgroundPanel.add(passwordField);
+
+        // Key Bindings for Arrow Navigation
+        InputMap usernameInputMap = usernameField.getInputMap(JComponent.WHEN_FOCUSED);
+        ActionMap usernameActionMap = usernameField.getActionMap();
+
+        InputMap passwordInputMap = passwordField.getInputMap(JComponent.WHEN_FOCUSED);
+        ActionMap passwordActionMap = passwordField.getActionMap();
+
+        // Arrow Down on usernameField -> Move to passwordField
+        usernameInputMap.put(KeyStroke.getKeyStroke("DOWN"), "moveToPassword");
+        usernameActionMap.put("moveToPassword", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                passwordField.requestFocusInWindow();
+            }
+        });
+
+        // Arrow Up on passwordField -> Move to usernameField
+        passwordInputMap.put(KeyStroke.getKeyStroke("UP"), "moveToUsername");
+        passwordActionMap.put("moveToUsername", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                usernameField.requestFocusInWindow();
+            }
+        });
 
         // Login Button
         JButton loginButton = new JButton("Login");
-        loginButton.setBounds(935, 600, 150, 40); // Adjusted further to the left
+        loginButton.setBounds(935, 600, 150, 40);
         loginButton.setBackground(new Color(181, 101, 29));
         loginButton.setForeground(Color.WHITE);
-        loginButton.setFont(new Font("Arial", Font.BOLD, 18)); // Bigger font for better visibility
+        loginButton.setFont(new Font("Arial", Font.BOLD, 18));
         loginButton.setBorderPainted(false);
         loginButton.setFocusPainted(false);
         backgroundPanel.add(loginButton);
-
-
 
         loginButton.addMouseListener(new MouseAdapter() {
             @Override
@@ -85,7 +106,7 @@ public class LoginWindow extends JFrame {
             }
         });
 
-        loginButton.addActionListener(e -> {
+        ActionListener loginAction = e -> {
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
 
@@ -94,21 +115,22 @@ public class LoginWindow extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid credentials! Please try again.");
             }
-        });
-        backgroundPanel.add(loginButton);
+        };
 
-    
-     // Create Account Button
+        // Add the same action listener to both text fields and the login button
+        usernameField.addActionListener(loginAction);
+        passwordField.addActionListener(loginAction);
+        loginButton.addActionListener(loginAction);
+
+        // Create Account Button
         JButton createAccountButton = new JButton("Create Account");
-        createAccountButton.setBounds(1150, 600, 200, 40); // Positioned left of the Login button
+        createAccountButton.setBounds(1150, 600, 200, 40);
         createAccountButton.setBackground(new Color(181, 101, 29));
         createAccountButton.setForeground(Color.WHITE);
-        createAccountButton.setFont(new Font("Arial", Font.BOLD, 18)); // Bigger font for better visibility
+        createAccountButton.setFont(new Font("Arial", Font.BOLD, 18));
         createAccountButton.setBorderPainted(false);
         createAccountButton.setFocusPainted(false);
         backgroundPanel.add(createAccountButton);
-
-
 
         createAccountButton.addMouseListener(new MouseAdapter() {
             @Override
@@ -126,55 +148,47 @@ public class LoginWindow extends JFrame {
             new CreateAccountWindow(); // Assuming this class exists
             dispose();
         });
-        backgroundPanel.add(createAccountButton);
 
         setVisible(true);
     }
-   
+
     private void showLoadingScreen() {
-        // Create a panel for the loading background image
         JPanel loadingPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                ImageIcon loadingIcon = new ImageIcon("src/loading.jpg"); // Ensure path is correct
+                ImageIcon loadingIcon = new ImageIcon("src/loading.jpg");
                 g.drawImage(loadingIcon.getImage(), 0, 0, getWidth(), getHeight(), this);
-
-                // Draw the text "Loading..." or "Completed" based on progress
                 g.setColor(Color.WHITE);
                 g.setFont(new Font("Arial", Font.BOLD, 10));
                 String loadingText = (progressBar.getValue() == 100) ? "Completed" : "Loading...";
                 int textWidth = g.getFontMetrics().stringWidth(loadingText);
                 int x = (getWidth() - textWidth) / 2;
                 int y = getHeight() - 30;
-
                 g.drawString(loadingText, x, y);
             }
         };
-        
+
         loadingPanel.setLayout(null);
-        loadingPanel.setBounds(0, 0, 300, 200); // Set to 300x200 size
+        loadingPanel.setBounds(0, 0, 300, 200);
         add(loadingPanel);
 
-        // Progress Bar at the bottom of the window (fixed position at the bottom of the image)
         progressBar = new JProgressBar();
-        progressBar.setBounds(0, 190, 300, 10); // Set the progress bar to the bottom (190 is just before the bottom)
+        progressBar.setBounds(0, 190, 300, 10);
         progressBar.setMinimum(0);
         progressBar.setMaximum(100);
         progressBar.setValue(0);
         progressBar.setStringPainted(true);
         loadingPanel.add(progressBar);
 
-        // Create a frame to hold everything (loading screen)
         JFrame loadingFrame = new JFrame();
-        loadingFrame.setSize(300, 200); // Set to 300x200 size
+        loadingFrame.setSize(300, 200);
         loadingFrame.setLocationRelativeTo(null);
         loadingFrame.setUndecorated(true);
         loadingFrame.setLayout(null);
         loadingFrame.add(loadingPanel);
         loadingFrame.setVisible(true);
 
-        // Simulate loading with a timer
         Timer timer = new Timer(100, new ActionListener() {
             int percentage = 0;
 
@@ -185,17 +199,10 @@ public class LoginWindow extends JFrame {
                     percentage = 100;
                 }
                 progressBar.setValue(percentage);
-
-                // Redraw the panel to update the text
                 loadingPanel.repaint();
-
                 if (percentage == 100) {
                     ((Timer) e.getSource()).stop();
-
-                    // Hide the progress bar and loading screen
                     progressBar.setVisible(false);
-
-                    // Proceed to the next window
                     SwingUtilities.invokeLater(() -> {
                         new StoryWindow().setVisible(true);
                         loadingFrame.dispose();
@@ -205,7 +212,4 @@ public class LoginWindow extends JFrame {
         });
         timer.start();
     }
-
-
-
 }
