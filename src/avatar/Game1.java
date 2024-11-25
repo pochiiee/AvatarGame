@@ -8,8 +8,11 @@ import java.util.Random;
 
 public class Game1 extends JFrame {
 
-    public Game1() {
-        setExtendedState(JFrame.MAXIMIZED_BOTH); // Full screen
+    private RoadMapWindow roadMapWindow; // Reference to the RoadMapWindow
+
+    public Game1(RoadMapWindow roadMapWindow) {
+        this.roadMapWindow = roadMapWindow;
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Full screen for the game
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         add(new GamePanel());
         setResizable(false);
@@ -25,8 +28,7 @@ public class Game1 extends JFrame {
         private char direction;
         private boolean gameOver;
         private Timer timer;
-        private int playCount = 0; // Tracks the number of games played
-        private final int MAX_PLAYS = 3; // Maximum number of allowed plays
+        private boolean showImageScreen = false; // Flag for displaying image when score reaches 10
 
         private Image snakeHeadImage;
         private Image snakeBodyImage; // Fish image for the body
@@ -82,12 +84,6 @@ public class Game1 extends JFrame {
         }
 
         private void startGame() {
-            if (playCount >= MAX_PLAYS) {
-                redirectToWelcomeWindow();
-                return;
-            }
-
-            playCount++;
             WIDTH = getWidth() / TILE_SIZE;
             HEIGHT = getHeight() / TILE_SIZE;
 
@@ -117,7 +113,7 @@ public class Game1 extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (!gameOver) {
+            if (!gameOver && !showImageScreen) {
                 moveSnake();
                 checkCollision();
                 repaint();
@@ -141,6 +137,13 @@ public class Game1 extends JFrame {
                 spawnFood(); // Generate new food
             } else {
                 snake.removeLast(); // Remove the tail
+            }
+
+            // Check if the score is 10
+            if (snake.size() - 1 == 10 && !showImageScreen) {
+                showImageScreen = true;
+                timer.stop(); // Pause the game
+                showCongratsPopup();
             }
         }
 
@@ -182,40 +185,47 @@ public class Game1 extends JFrame {
             }
         }
 
-        private void redirectToWelcomeWindow() {
-            JOptionPane.showMessageDialog(this,
-                    "You have reached the maximum number of plays. Returning to the welcome screen.",
-                    "Limit Reached",
-                    JOptionPane.INFORMATION_MESSAGE);
+        private void showCongratsPopup() {
+            // Create a new JFrame for the popup
+            JFrame popup = new JFrame();
+            popup.setUndecorated(true);
+            popup.setSize(400, 300);
+            popup.setLayout(null);
+            popup.setLocationRelativeTo(null); // Center the popup
 
-            SwingUtilities.invokeLater(() -> {
-                new WelcomeWindow(); // Instantiate and display WelcomeWindow
+            // Add the congrats image
+            JLabel congratsLabel = new JLabel(new ImageIcon("src/congrats.jpg"));
+            congratsLabel.setBounds(0, 0, 400, 300);
+            popup.add(congratsLabel);
+
+            // Add a "Continue" button overlayed on the image
+            JButton continueButton = new JButton("Continue");
+            continueButton.setBounds(150, 220, 100, 30); // Position over the image
+            continueButton.addActionListener(e -> {
+                popup.dispose(); // Close the popup
                 dispose(); // Close the current game window
+                roadMapWindow.unlockGame2(); // Unlock Game 2
             });
+
+            congratsLabel.add(continueButton); // Add button to the label (overlay)
+            popup.setVisible(true);
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
 
-            // Ensure snake and food are initialized before painting
-            if (snake == null || food == null) {
-                return; // Skip painting if game components are not ready
-            }
+            if (snake == null || food == null) return;
 
-            // Draw background
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
 
-            // Display score
             g.setColor(Color.WHITE);
             g.setFont(new Font("Arial", Font.BOLD, 20));
             g.drawString("Score: " + (snake.size() - 1), 10, 30);
 
-            // Draw energy icon and plays left
-            g.drawImage(energyIcon, 10, 40, this); // Move icon higher up
-            g.drawString(": " + (MAX_PLAYS - playCount), 70, 75); // Number of plays left beside icon
+            g.drawImage(energyIcon, 10, 40, this);
+            g.drawString(": " + (3 - 1), 70, 75);
 
-            // Draw snake
             for (int i = 0; i < snake.size(); i++) {
                 Point p = snake.get(i);
                 if (i == 0) {
@@ -225,7 +235,6 @@ public class Game1 extends JFrame {
                 }
             }
 
-            // Draw food
             if (food != null) {
                 g.drawImage(foodImage, food.x * TILE_SIZE, food.y * TILE_SIZE, TILE_SIZE, TILE_SIZE, this);
             }

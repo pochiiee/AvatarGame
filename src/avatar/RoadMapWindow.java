@@ -61,11 +61,16 @@ public class RoadMapWindow extends JFrame {
         // Add functionality to Game 1 button
         game1Button.addActionListener(e -> {
             if (!game1Button.isLocked()) {
-                new Game1(); // Launch Game 1
+                new Game1(this); // Pass the current `RoadMapWindow` instance to `Game1`
             } else {
                 JOptionPane.showMessageDialog(this, "Game 1 is locked! Complete the required steps to unlock.");
             }
         });
+
+        // Add hover listeners for locked games
+        addHoverMessage(game2Button, "Complete Game 1 to unlock this game.");
+        addHoverMessage(game3Button, "Complete Game 2 to unlock this game.");
+        addHoverMessage(game4Button, "Complete Game 3 to unlock this game.");
 
         // Add buttons to the panel
         backgroundPanel.add(game1Button);
@@ -114,10 +119,35 @@ public class RoadMapWindow extends JFrame {
         }
     }
 
+    // Add a hover message to a button
+    private void addHoverMessage(OvalButton button, String message) {
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (button.isLocked()) {
+                    JToolTip tooltip = button.createToolTip();
+                    tooltip.setTipText(message);
+                    Popup popup = PopupFactory.getSharedInstance().getPopup(
+                            button,
+                            tooltip,
+                            button.getLocationOnScreen().x + button.getWidth(),
+                            button.getLocationOnScreen().y
+                    );
+                    popup.show();
+
+                    // Hide the tooltip after a short delay
+                    Timer timer = new Timer(2000, evt -> popup.hide());
+                    timer.setRepeats(false);
+                    timer.start();
+                }
+            }
+        });
+    }
+
     // Static method to unlock Game 2
-    public static void unlockGame2() {
+    public void unlockGame2() {
         game2Button.setLocked(false); // Unlock Game 2
-        JOptionPane.showMessageDialog(null, "Game 2 Unlocked!"); // Notify the player
+        JOptionPane.showMessageDialog(this, "Game 2 Unlocked!"); // Notify the player
     }
 
     // Custom button class with oval shape, hover effect, and lock overlay
