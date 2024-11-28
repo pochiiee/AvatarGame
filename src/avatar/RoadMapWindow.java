@@ -61,7 +61,7 @@ public class RoadMapWindow extends JFrame {
         // Add functionality to Game 1 button
         game1Button.addActionListener(e -> {
             if (!game1Button.isLocked()) {
-                new Game1(this); // Pass the current `RoadMapWindow` instance to `Game1`
+                new Game1(this).setVisible(true); // Pass the current `RoadMapWindow` instance to `Game1`
             } else {
                 JOptionPane.showMessageDialog(this, "Game 1 is locked! Complete the required steps to unlock.");
             }
@@ -144,10 +144,14 @@ public class RoadMapWindow extends JFrame {
         });
     }
 
-    // Static method to unlock Game 2
+    // Static method to unlock Game 2 and update Game 1
     public void unlockGame2() {
         game2Button.setLocked(false); // Unlock Game 2
+        game1Button.setText("Completed"); // Update Game 1 button text
+        game1Button.setForeground(Color.RED); // Change text color to red
+        game1Button.setEnabled(false); // Optionally disable Game 1 button
         JOptionPane.showMessageDialog(this, "Game 2 Unlocked!"); // Notify the player
+        
     }
 
     // Custom button class with oval shape, hover effect, and lock overlay
@@ -188,6 +192,10 @@ public class RoadMapWindow extends JFrame {
             repaint();
         }
 
+        public boolean isLocked() {
+            return isLocked;
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
@@ -226,10 +234,6 @@ public class RoadMapWindow extends JFrame {
         @Override
         public Dimension getPreferredSize() {
             return new Dimension(130, 65); // Preferred size for the oval buttons
-        }
-
-        public boolean isLocked() {
-            return isLocked;
         }
     }
 }

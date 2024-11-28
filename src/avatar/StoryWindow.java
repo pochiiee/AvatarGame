@@ -9,124 +9,123 @@ import java.io.IOException;
 
 public class StoryWindow extends JFrame {
 
-    private int currentImageIndex = 0; // Para malaman kung nasan na sa images
-    private JLabel backgroundLabel;   // Background label para sa images
-    private String[] imagePaths = {   // Image paths
+    private int currentImageIndex = 0; // Track the current image index
+    private JLabel backgroundLabel;   // Label to display the background image
+    private String[] imagePaths = {   // Paths to the images
         "src/story/story1.png",
         "src/story/story2.png",
         "src/story/story3.png",
-        "src/story/story4.png",
+        "src/story/story4.png"
     };
-    
-    private Clip clip; // Clip para sa background music
-    private long lastStopPosition = 0; // Variable to store last stop position in microseconds
+
+    private String[] soundPaths = {   // Corresponding sound files
+        "src/1st.wav",
+        "src/2nd.wav",
+        "src/3rd.wav",
+        "src/4th.wav"
+    };
+
+    private Clip clip; // Clip to play audio
 
     public StoryWindow() {
-        // I-remove yung decorations ng window (para walang resizable at X/minimize/maximize buttons)
-        setUndecorated(true);
+        setUndecorated(true); // Remove window decorations
 
-        // I-set to fullscreen
+        // Set fullscreen mode
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         gd.setFullScreenWindow(this);
 
-        // Hindi na pwedeng i-resize ang window
+        // Set JFrame properties
         setResizable(false);
-
-        // Pag walang decoration, pwede natin i-center ang window manually
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds(0, 0, screenSize.width, screenSize.height); // Fullscreen window dimensions
-
-        // I-setup ang layout ng JFrame
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
 
-        // Add ng background label
+        // Add background label
         backgroundLabel = new JLabel();
-        backgroundLabel.setBounds(0, 0, screenSize.width, screenSize.height); // Fullscreen background
-        setBackgroundImage(currentImageIndex); // First background image
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        backgroundLabel.setBounds(0, 0, screenSize.width, screenSize.height);
+        setBackgroundImage(currentImageIndex); // Set the initial background image
         add(backgroundLabel);
 
-        // Add ng "Next" button
+        // Add "Next" button
         JButton nextButton = new JButton("Next");
-        nextButton.setBounds(screenSize.width - 180, screenSize.height - 100, 100, 30); // Adjusted X and Y position
-        nextButton.setBackground(new Color(173, 216, 230)); // Light blue
+        nextButton.setBounds(screenSize.width - 150, screenSize.height - 80, 100, 30);
+        nextButton.setBackground(new Color(173, 216, 230));
         nextButton.setOpaque(true);
         nextButton.setBorderPainted(false);
 
-        // Hover effect para sa "Next" button
+        // Add hover effect
         nextButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                nextButton.setBackground(new Color(135, 206, 235)); // Lighter blue
+                nextButton.setBackground(new Color(135, 206, 235));
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                nextButton.setBackground(new Color(173, 216, 230)); // Original blue
+                nextButton.setBackground(new Color(173, 216, 230));
             }
         });
 
-        // Action listener para sa "Next" button
+        // Add action listener to the button
         nextButton.addActionListener(e -> {
-            if (currentImageIndex == 1) { // After 0.17 seconds
-                stopBackgroundMusic(); // Stop music at 0.17
-            } else if (currentImageIndex == 2) { // After 0.24 seconds
-                stopBackgroundMusic(); // Stop music at 0.24
-            }
-
+            stopBackgroundMusic(); // Stop the current music
             if (currentImageIndex < imagePaths.length - 1) {
                 currentImageIndex++;
-                setBackgroundImage(currentImageIndex); // Update image
-                playBackgroundMusic(); // Continue music from the next point after the stop
+                setBackgroundImage(currentImageIndex);
+                playBackgroundMusic(currentImageIndex); // Play music for the new image
             } else {
-                // Proceed to next window or close
-                new RoadMapWindow();
-                dispose();
+                // Close the story window or navigate to the next window
+                transitionToRoadMap();
             }
         });
 
-        backgroundLabel.add(nextButton); // Attach the button to the background
-        setVisible(true); // I-display ang window
+        backgroundLabel.add(nextButton);
+        setVisible(true);
 
-        // Play the background music for the first time
-        playBackgroundMusic();
+        // Play the first background music
+        playBackgroundMusic(currentImageIndex);
     }
 
-    // Method para mag-load ng background image
+    // Method to set the background image
     private void setBackgroundImage(int index) {
         ImageIcon icon = new ImageIcon(imagePaths[index]);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-        // Scale image para magfit sa buong screen
         Image scaledImage = icon.getImage().getScaledInstance(screenSize.width, screenSize.height, Image.SCALE_SMOOTH);
         backgroundLabel.setIcon(new ImageIcon(scaledImage));
     }
 
-    // Method para mag-play ng background music
-    private void playBackgroundMusic() {
+    // Method to play background music
+    private void playBackgroundMusic(int index) {
         try {
-            File musicPath = new File("src/.wav"); // Path to your .wav file
+            File musicPath = new File(soundPaths[index]);
             if (musicPath.exists()) {
-                if (clip == null || !clip.isRunning()) { // If music is not already playing, start it
-                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(musicPath);
-                    clip = AudioSystem.getClip();
-                    clip.open(audioInput);
-                    clip.loop(Clip.LOOP_CONTINUOUSLY); // Loop the music continuously
-                    clip.setMicrosecondPosition(lastStopPosition); // Start from the last stopped position
-                }
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(musicPath);
+                clip = AudioSystem.getClip();
+                clip.open(audioInput);
+                clip.start(); // Play the clip
             } else {
-                System.out.println("Music file not found.");
+                System.out.println("Music file not found: " + soundPaths[index]);
             }
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
             e.printStackTrace();
         }
     }
 
-    // Method para mag-stop ng music
+    // Method to stop background music
     private void stopBackgroundMusic() {
         if (clip != null && clip.isRunning()) {
-            lastStopPosition = clip.getMicrosecondPosition(); // Save the current position
-            clip.stop(); // Stop the music
+            clip.stop();
+            clip.close(); // Release the resources
         }
+    }
+
+    // Transition to RoadMapWindow
+    private void transitionToRoadMap() {
+        stopBackgroundMusic(); // Ensure music stops before transition
+
+        SwingUtilities.invokeLater(() -> {
+            new RoadMapWindow().setVisible(true); // Launch RoadMapWindow
+            dispose(); // Dispose of the StoryWindow
+        });
     }
 }

@@ -153,6 +153,7 @@ public class LoginWindow extends JFrame {
     }
 
     private void showLoadingScreen() {
+        // Create a loading panel
         JPanel loadingPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -173,6 +174,7 @@ public class LoginWindow extends JFrame {
         loadingPanel.setBounds(0, 0, 300, 200);
         add(loadingPanel);
 
+        // Configure progress bar
         progressBar = new JProgressBar();
         progressBar.setBounds(0, 190, 300, 10);
         progressBar.setMinimum(0);
@@ -181,6 +183,7 @@ public class LoginWindow extends JFrame {
         progressBar.setStringPainted(true);
         loadingPanel.add(progressBar);
 
+        // Create a loading frame
         JFrame loadingFrame = new JFrame();
         loadingFrame.setSize(300, 200);
         loadingFrame.setLocationRelativeTo(null);
@@ -189,6 +192,7 @@ public class LoginWindow extends JFrame {
         loadingFrame.add(loadingPanel);
         loadingFrame.setVisible(true);
 
+        // Start loading animation
         Timer timer = new Timer(100, new ActionListener() {
             int percentage = 0;
 
@@ -204,7 +208,11 @@ public class LoginWindow extends JFrame {
                     ((Timer) e.getSource()).stop();
                     progressBar.setVisible(false);
                     SwingUtilities.invokeLater(() -> {
+                        // Open StoryWindow
                         new StoryWindow().setVisible(true);
+
+                        // Dispose LoginWindow and loading frame
+                        dispose(); // Dispose of LoginWindow
                         loadingFrame.dispose();
                     });
                 }
@@ -212,4 +220,5 @@ public class LoginWindow extends JFrame {
         });
         timer.start();
     }
+
 }
