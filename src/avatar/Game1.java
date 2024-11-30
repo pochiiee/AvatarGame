@@ -503,9 +503,6 @@ class StartScreen extends JDialog {
 
             failedDialog.setVisible(true); // Show the dialog
         }
-    
-
-
        
 
         private void showMissionComplete() {

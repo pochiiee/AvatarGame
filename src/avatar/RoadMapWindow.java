@@ -66,6 +66,15 @@ public class RoadMapWindow extends JFrame {
                 JOptionPane.showMessageDialog(this, "Game 1 is locked! Complete the required steps to unlock.");
             }
         });
+        
+     // Add functionality to Game 1 button
+        game2Button.addActionListener(e -> {
+            if (!game2Button.isLocked()) {
+                new Game2().setVisible(true); // Pass the current `RoadMapWindow` instance to `Game1`
+            } else {
+                JOptionPane.showMessageDialog(this, "Game 1 is locked! Complete the required steps to unlock.");
+            }
+        });
 
         // Add hover listeners for locked games
         addHoverMessage(game2Button, "Complete Game 1 to unlock this game.");
