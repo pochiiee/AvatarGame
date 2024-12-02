@@ -300,6 +300,12 @@ public class Game2 extends JPanel implements ActionListener, KeyListener {
             g.drawImage(obstacle.img, obstacle.x, obstacle.y, obstacle.width, obstacle.height, null);
         }
 
+        // Draw the red effect for collision
+        if (collisionArea != null) {
+            g.setColor(new Color(255, 0, 0, 128)); // Semi-transparent red
+            g.fillRect(collisionArea.x, collisionArea.y, collisionArea.width, collisionArea.height);
+        }
+
         // Draw the score
         g.setColor(Color.ORANGE);
         g.setFont(new Font("Arial", Font.BOLD, 48));
@@ -310,11 +316,8 @@ public class Game2 extends JPanel implements ActionListener, KeyListener {
             g.drawImage(energyIcon, 10 + (i * 40), 10, 30, 30, this);
         }
 
-        if (gameOver) {
-            // Game Over text is handled in the game over dialog
-            // Optionally, you can draw some overlay here
-        }
     }
+
 
     public void move() {
         if (!gameStarted) return; // Exit if the game has not started
@@ -355,6 +358,8 @@ public class Game2 extends JPanel implements ActionListener, KeyListener {
             showMissionComplete();
         }
     }
+    
+    Rectangle collisionArea = null;
 
     boolean collision(Bird bird, Obstacle obstacle) {
         BufferedImage birdImage = toBufferedImage(bird.img);
@@ -364,12 +369,19 @@ public class Game2 extends JPanel implements ActionListener, KeyListener {
         Rectangle birdBounds = new Rectangle(bird.x, bird.y, bird.width, bird.height);
         Rectangle obstacleBounds = new Rectangle(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
         Rectangle intersection = birdBounds.intersection(obstacleBounds);
+        
+        collisionArea = birdBounds.intersection(obstacleBounds);
 
         // If there is no intersection, return false
         if (intersection.isEmpty()) {
             return false;
         }
 
+        if (collisionArea.isEmpty()) {
+            collisionArea = null; // Reset collision area
+            return false;
+        }
+        
         // Check each pixel in the intersection for non-transparent overlap
         for (int i = 0; i < intersection.width; i++) {
             for (int j = 0; j < intersection.height; j++) {
