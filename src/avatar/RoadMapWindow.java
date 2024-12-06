@@ -70,7 +70,7 @@ public class RoadMapWindow extends JFrame {
      // Add functionality to Game 1 button
         game2Button.addActionListener(e -> {
             if (!game2Button.isLocked()) {
-                new Game2().setVisible(true); // Pass the current `RoadMapWindow` instance to `Game1`
+            	 new Game2();
             } else {
                 JOptionPane.showMessageDialog(this, "Game 1 is locked! Complete the required steps to unlock.");
             }

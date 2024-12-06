@@ -82,7 +82,7 @@ public class StoryWindow extends JFrame {
         backgroundLabel.add(nextButton);
         setVisible(true);
 
-        // Play the first background music
+        // Preload and play the first background music
         playBackgroundMusic(currentImageIndex);
     }
 
@@ -97,12 +97,15 @@ public class StoryWindow extends JFrame {
     // Method to play background music
     private void playBackgroundMusic(int index) {
         try {
+            // Stop and close the previous clip before playing the new one
+            stopBackgroundMusic();
+
             File musicPath = new File(soundPaths[index]);
             if (musicPath.exists()) {
                 AudioInputStream audioInput = AudioSystem.getAudioInputStream(musicPath);
                 clip = AudioSystem.getClip();
                 clip.open(audioInput);
-                clip.start(); // Play the clip
+                clip.start(); // Start the new music
             } else {
                 System.out.println("Music file not found: " + soundPaths[index]);
             }

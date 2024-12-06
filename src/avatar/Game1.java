@@ -276,15 +276,21 @@ class StartScreen extends JDialog {
                     isSpecialFood = true;
                 }
 
-                // Check if the mission is completed
-                if (score >= 10) {
-                    timer.stop();
-                    showMissionComplete();
-                } else {
+                if (score < 50) {
                     spawnFood(); // Spawn a new food
                 }
             } else {
                 snake.removeLast(); // If no food is eaten, remove the tail
+            }
+            if (score >= 50 && timer.isRunning()) {
+                timer.stop(); // Stop the timer when the mission is complete
+                
+                // Use a small delay to ensure all UI updates are complete
+                SwingUtilities.invokeLater(() -> {
+                    // Call the MissionCompleteDialog class and pass necessary parameters
+                    MissionCompleteDialog missionDialog = new MissionCompleteDialog(Game1.this, roadMapWindow);
+                    missionDialog.setVisible(true); // Make the dialog visible
+                });
             }
         }
 
@@ -421,7 +427,10 @@ class StartScreen extends JDialog {
                 paintImmediately(0, 0, getWidth(), getHeight());
 
                 // Show failed image and transition to WelcomeWindow
-                showFailedScreen();
+                MissionFailedDialog dialog = new MissionFailedDialog("Game1", roadMapWindow, game1Window);
+                faileddialog.showMissionFailed();
+
+         
             }
         }
 
@@ -437,148 +446,8 @@ class StartScreen extends JDialog {
             });
         }
 
-        private void showFailedScreen() {
-            // Create a modal dialog for the failed screen
-            JDialog failedDialog = new JDialog(Game1.this, true); // Use Game1.this as the parent
-            failedDialog.setSize(400, 250); // Set the dialog size
-            failedDialog.setLayout(null); // Use absolute positioning
-            failedDialog.setUndecorated(true); // Remove the title bar
-            failedDialog.setLocationRelativeTo(Game1.this); // Center relative to Game1 frame
-
-            // Add the failed image
-            JLabel failedImageLabel = new JLabel();
-            failedImageLabel.setBounds(0, 0, 400, 260);
-
-            // Magdagdag ng gray na border sa gilid ng imahe
-            int borderSize = 3; // Size ng border
-            failedImageLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY, borderSize));
-
-            try {
-                ImageIcon failedIcon = new ImageIcon("src/failed.png");
-
-                // I-adjust ang size ng imahe upang hindi matakpan ang border
-                int imageWidth = 400 - (2 * borderSize);
-                int imageHeight = 260 - (2 * borderSize);
-                Image scaledFailedImage = failedIcon.getImage().getScaledInstance(imageWidth, imageHeight, Image.SCALE_SMOOTH);
-
-                // Gumawa ng ImageIcon mula sa scaled image
-                ImageIcon scaledIcon = new ImageIcon(scaledFailedImage);
-
-                // Itakda ang icon ng label at i-center ito
-                failedImageLabel.setIcon(scaledIcon);
-                failedImageLabel.setHorizontalAlignment(JLabel.CENTER);
-                failedImageLabel.setVerticalAlignment(JLabel.CENTER);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Failed to load 'failed.png': " + e.getMessage(),
-                        "Image Load Error", JOptionPane.ERROR_MESSAGE);
-            }
-
-            failedDialog.add(failedImageLabel);
-
-            // Add the OK button overlaying the image
-            JButton okButton = new JButton("OK");
-            okButton.setBounds(165, 220, 70, 25); // Pinaliit ang size at in-adjust ang posisyon pataas
-            okButton.setFocusPainted(false);
-            Color normalColor = new Color(165, 42, 42); // Original color
-            Color hoverColor = normalColor.darker();    // Darker color for hover effect
-            okButton.setBackground(normalColor);
-            okButton.setForeground(Color.WHITE);
-            okButton.setFont(new Font("Arial", Font.BOLD, 14));
-            okButton.setBorderPainted(false); // Remove button border
-            okButton.setOpaque(true);
-
-            // Add hover effect to the button
-            addHoverEffect(okButton, normalColor, hoverColor);
-
-            // Add action listener to transition to WelcomeWindow
-            okButton.addActionListener(e -> {
-                failedDialog.dispose(); // Close the failed dialog
-                new WelcomeWindow().setVisible(true); // Open the WelcomeWindow
-                Game1.this.dispose(); // Close the current Game1 window
-            });
-
-            // Add components to the label
-            failedImageLabel.setLayout(null); // Enable absolute positioning for components inside the label
-            failedImageLabel.add(okButton); // Add the button to the image label
-
-            failedDialog.setVisible(true); // Show the dialog
-        }
+        
        
-
-        private void showMissionComplete() {
-            // Create a modal dialog for the mission complete screen
-            JDialog missionCompleteDialog = new JDialog(Game1.this, true); // Use Game1.this as the parent
-            missionCompleteDialog.setSize(400, 250); // Set the dialog size
-            missionCompleteDialog.setLayout(null); // Use absolute positioning
-            missionCompleteDialog.setUndecorated(true); // Remove the title bar
-            missionCompleteDialog.setLocationRelativeTo(Game1.this); // Center relative to Game1 frame
-
-            // Add the mission complete image
-            JLabel missionCompleteLabel = new JLabel();
-            missionCompleteLabel.setBounds(0, 0, 400, 260);
-
-            // Magdagdag ng gray na border sa gilid ng imahe
-            int borderSize = 3; // Size ng border
-            missionCompleteLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY, borderSize));
-
-            try {
-                ImageIcon originalIcon = new ImageIcon("src/missioncomplete.png");
-
-                // I-adjust ang size ng imahe upang hindi matakpan ang border
-                int imageWidth = 400 - (2 * borderSize);
-                int imageHeight = 260 - (2 * borderSize);
-                Image scaledImage = originalIcon.getImage().getScaledInstance(imageWidth, imageHeight, Image.SCALE_SMOOTH);
-
-                // Gumawa ng ImageIcon mula sa scaled image
-                ImageIcon scaledIcon = new ImageIcon(scaledImage);
-
-                // Itakda ang icon ng label at i-center ito
-                missionCompleteLabel.setIcon(scaledIcon);
-                missionCompleteLabel.setHorizontalAlignment(JLabel.CENTER);
-                missionCompleteLabel.setVerticalAlignment(JLabel.CENTER);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Failed to load 'missioncomplete.png': " + e.getMessage(),
-                        "Image Load Error", JOptionPane.ERROR_MESSAGE);
-            }
-
-            missionCompleteDialog.add(missionCompleteLabel);
-
-            // Add the "Continue" button overlaying the image
-            JButton continueButton = new JButton("Continue");
-            // Pinalaki ang width ng button at in-adjust ang x-coordinate upang manatiling naka-center
-            continueButton.setBounds(150, 220, 100, 25); // Pinalaki ang size at in-adjust ang posisyon
-            continueButton.setFocusPainted(false);
-            Color normalColor = new Color(165, 42, 42); // Original color
-            Color hoverColor = normalColor.darker();    // Darker color for hover effect
-            continueButton.setBackground(normalColor);
-            continueButton.setForeground(Color.WHITE);
-            continueButton.setFont(new Font("Arial", Font.BOLD, 14));
-            continueButton.setBorderPainted(false); // Remove button border
-            continueButton.setOpaque(true);
-
-            // Add hover effect to the button
-            addHoverEffect(continueButton, normalColor, hoverColor);
-
-            // Add action listener to handle button click
-            continueButton.addActionListener(e -> {
-                missionCompleteDialog.dispose(); // Close the mission complete dialog
-                dispose(); // Dispose the current game window
-                if (roadMapWindow != null) {
-                    roadMapWindow.unlockGame2(); // Unlock Game 2
-                    roadMapWindow.setVisible(true); // Transition to the roadmap
-                }
-            });
-
-            // Add components to the label
-            missionCompleteLabel.setLayout(null); // Enable absolute positioning for components inside the label
-            missionCompleteLabel.add(continueButton); // Add the button to the image label
-
-            // Ensure the dialog disposes cleanly when requested
-            missionCompleteDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-
-            // Show the dialog
-            missionCompleteDialog.setVisible(true); // Show the dialog
-        }
 
 
         @Override
