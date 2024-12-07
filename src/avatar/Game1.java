@@ -16,6 +16,7 @@ public class Game1 extends JFrame {
     private int energy = 3; // Player starts with 3 energy points
 
     public Game1(RoadMapWindow roadMapWindow) {
+    	
         this.roadMapWindow = roadMapWindow;
 
         // Show Start Screen first
@@ -61,7 +62,7 @@ public class Game1 extends JFrame {
 
                     // Draw the main image without white background
                     try {
-                        BufferedImage image = ImageIO.read(new File("src/watermission.png"));
+                        BufferedImage image = ImageIO.read(new File("src/img/watermission.png"));
                         Image scaledImage = image.getScaledInstance(380, 310, Image.SCALE_SMOOTH);
 
                         int imageX = 10;
@@ -175,12 +176,12 @@ public class Game1 extends JFrame {
 
         private void loadImages() {
             try {
-                snakeHeadImage = new ImageIcon("src/boat.png").getImage().getScaledInstance(BOAT_SIZE, BOAT_SIZE, Image.SCALE_SMOOTH);
-                snakeBodyImage = new ImageIcon("src/fish.png").getImage();
-                foodImage = new ImageIcon("src//fish.png").getImage();
-                backgroundImage = new ImageIcon("src/waterbg.jpg").getImage();
-                energyIcon = new ImageIcon("src/energy.png").getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-                aangImage = new ImageIcon("src/aang.png").getImage().getScaledInstance(AANG_SIZE, AANG_SIZE, Image.SCALE_SMOOTH);
+                snakeHeadImage = new ImageIcon("src/img/boat.png").getImage().getScaledInstance(BOAT_SIZE, BOAT_SIZE, Image.SCALE_SMOOTH);
+                snakeBodyImage = new ImageIcon("src/img/fish.png").getImage();
+                foodImage = new ImageIcon("src/img/fish.png").getImage();
+                backgroundImage = new ImageIcon("src/img/waterbg.jpg").getImage();
+                energyIcon = new ImageIcon("src/img/energy.png").getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+                aangImage = new ImageIcon("src/img/aang.png").getImage().getScaledInstance(AANG_SIZE, AANG_SIZE, Image.SCALE_SMOOTH);
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error loading images: " + e.getMessage(),
                         "Image Load Error", JOptionPane.ERROR_MESSAGE);
@@ -328,7 +329,7 @@ public class Game1 extends JFrame {
                 gameOverDialog.setUndecorated(true); // Remove the title bar and window decorations
 
                 // Load and scale the game over image to 305x220 pixels
-                ImageIcon icon = new ImageIcon("src/gameover.png");
+                ImageIcon icon = new ImageIcon("src/img/gameover.png");
                 Image scaledImage = icon.getImage().getScaledInstance(305, 220, Image.SCALE_SMOOTH);
 
                 // Create a custom panel that displays the image and overlays buttons
@@ -419,6 +420,7 @@ public class Game1 extends JFrame {
                 MissionFailedDialog dialog = new MissionFailedDialog(Game1.this, roadMapWindow);
                 dialog.showMissionFailed();
                 dispose();
+                roadMapWindow.dispose();
             }
         }
 
@@ -433,9 +435,6 @@ public class Game1 extends JFrame {
                 }
             });
         }
-
-
-
 
 
         @Override

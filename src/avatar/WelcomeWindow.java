@@ -6,11 +6,23 @@ import java.awt.event.*;
 
 public class WelcomeWindow extends JFrame {
 
+    private final RoadMapWindow roadMapWindow;
+
+    public static void main(String[] args) {
+        // Instantiate the roadMapWindow before passing it to Game3
+        RoadMapWindow roadMapWindow = new RoadMapWindow();
+        new Game3(roadMapWindow);
+    }
+
     private Image backgroundImage;
 
     public WelcomeWindow() {
+
+        // Initialize roadMapWindow here, or pass it to constructor from another class
+        roadMapWindow = new RoadMapWindow();
+
         // Load the background image
-        ImageIcon icon = new ImageIcon("src/welcomee.png");
+        ImageIcon icon = new ImageIcon("src/img/welcomee.png");
         backgroundImage = icon.getImage();
 
         setSize(Toolkit.getDefaultToolkit().getScreenSize()); // Set to full-screen size
@@ -21,7 +33,7 @@ public class WelcomeWindow extends JFrame {
         setResizable(false);
 
         // Set the frame to full-screen mode
-        setExtendedState(JFrame.MAXIMIZED_BOTH); 
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         // Create a custom panel for the background
         JPanel backgroundPanel = new JPanel() {
@@ -85,9 +97,5 @@ public class WelcomeWindow extends JFrame {
         });
 
         setVisible(true);
-    }
-
-    public static void main(String[] args) {
-        new Game3();
     }
 }

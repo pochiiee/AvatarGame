@@ -8,6 +8,7 @@ import java.io.*;
 import java.util.Properties;
 
 public class RoadMapWindow extends JFrame {
+	
     private final Image backgroundImage;
 
     // Declare buttons as instance variables
@@ -20,7 +21,7 @@ public class RoadMapWindow extends JFrame {
 
     public RoadMapWindow() {
         // Load the background image
-        ImageIcon icon = new ImageIcon("src/roadmap.png"); // Path to the background image
+        ImageIcon icon = new ImageIcon("src/img/roadmap.png"); // Path to the background image
         backgroundImage = icon.getImage();
 
         // Set up the frame
@@ -63,7 +64,7 @@ public class RoadMapWindow extends JFrame {
             if (!game1Button.isLocked()) {
                 new Game1(this).setVisible(true); // Pass the current `RoadMapWindow` instance to `Game1`
                 
-                dispose(); 
+             
             } else {
                 JOptionPane.showMessageDialog(this, "Game 1 is locked! Complete the required steps to unlock.");
             }
@@ -74,8 +75,7 @@ public class RoadMapWindow extends JFrame {
             if (!game2Button.isLocked()) {
                 Game2 game2Instance = new Game2(this); // Create an instance of Game2
                 game2Instance.setVisible(true);
-                
-                dispose(); 
+
                 
                 if (game2Instance != null) { // Check if the Game2 instance is not null
                     game2Instance.dispose(); // Dispose the Game2 instance when done
@@ -84,6 +84,29 @@ public class RoadMapWindow extends JFrame {
                 JOptionPane.showMessageDialog(this, "Game 2 is locked! Complete the required steps to unlock.");
             }
 
+        });
+        
+     // Add functionality to Game 1 button
+        game3Button.addActionListener(e -> {
+            if (!game1Button.isLocked()) {
+            	//dito lagay game3
+            	new Game3(this).setVisible(true);
+           
+            } else {
+                JOptionPane.showMessageDialog(this, "Game 3 is locked! Complete the required steps to unlock.");
+            }
+        });
+        
+     // Add functionality to Game 1 button
+        game4Button.addActionListener(e -> {
+            if (!game1Button.isLocked()) {
+            	
+            	//dito lagay game4
+                
+               
+            } else {
+                JOptionPane.showMessageDialog(this, "Game 4 is locked! Complete the required steps to unlock.");
+            }
         });
 
         // Add hover listeners for locked games

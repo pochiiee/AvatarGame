@@ -22,7 +22,7 @@ public class LoginWindow extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         // Load the background image
-        ImageIcon icon = new ImageIcon("src/login.png");
+        ImageIcon icon = new ImageIcon("src/img/login.png");
         backgroundImage = icon.getImage();
 
         // Create a custom panel for the background
@@ -158,7 +158,7 @@ public class LoginWindow extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                ImageIcon loadingIcon = new ImageIcon("src/loading.jpg");
+                ImageIcon loadingIcon = new ImageIcon("src/img/loading.jpg");
                 g.drawImage(loadingIcon.getImage(), 0, 0, getWidth(), getHeight(), this);
                 g.setColor(Color.WHITE);
                 g.setFont(new Font("Arial", Font.BOLD, 10));

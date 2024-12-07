@@ -19,10 +19,10 @@ public class StoryWindow extends JFrame {
     };
 
     private String[] soundPaths = {   // Corresponding sound files
-        "src/1st.wav",
-        "src/2nd.wav",
-        "src/3rd.wav",
-        "src/4th.wav"
+        "src/wavfile/1st.wav",
+        "src/wavfile/2nd.wav",
+        "src/wavfile/3rd.wav",
+        "src/wavfile/4th.wav"
     };
 
     private Clip clip; // Clip to play audio

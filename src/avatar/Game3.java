@@ -11,6 +11,8 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class Game3 extends JPanel implements ActionListener, KeyListener {
+	
+	 private final RoadMapWindow roadMapWindow;
 
     int boardWidth;
     int boardHeight;
@@ -61,7 +63,10 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
     // Mission
     private final int MISSION_SCORE = 10;
 
-    public Game3() {
+    public Game3(RoadMapWindow roadMapWindow) {
+    	
+    	  this.roadMapWindow = roadMapWindow;
+    	  
         // Get screen dimensions
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         Dimension screenSize = toolkit.getScreenSize();
@@ -73,12 +78,12 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
 
         // Load images
         try {
-            backgroundImg = new ImageIcon(getClass().getResource("/air/flappybirdbg.jpg")).getImage();
-            birdImg = new ImageIcon(getClass().getResource("/air/flappybird.png")).getImage();
-            cloudImg = new ImageIcon(getClass().getResource("/air/cloud.png")).getImage();
-            energyIcon = new ImageIcon(getClass().getResource("/energy.png")).getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-            missionCompleteImg = new ImageIcon(getClass().getResource("/missioncomplete.png")).getImage().getScaledInstance(305, 220, Image.SCALE_SMOOTH);
-            missionFailedImg = new ImageIcon(getClass().getResource("/failed.png")).getImage().getScaledInstance(305, 220, Image.SCALE_SMOOTH);
+            backgroundImg = new ImageIcon(getClass().getResource("/img/flappybirdbg.jpg")).getImage();
+            birdImg = new ImageIcon(getClass().getResource("/img/flappybird.png")).getImage();
+            cloudImg = new ImageIcon(getClass().getResource("/img/cloud.png")).getImage();
+            energyIcon = new ImageIcon(getClass().getResource("/img/energy.png")).getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+            missionCompleteImg = new ImageIcon(getClass().getResource("/img/missioncomplete.png")).getImage().getScaledInstance(305, 220, Image.SCALE_SMOOTH);
+            missionFailedImg = new ImageIcon(getClass().getResource("/img/failed.png")).getImage().getScaledInstance(305, 220, Image.SCALE_SMOOTH);
         } catch (Exception e) {
             System.err.println("Error loading images: " + e.getMessage());
             JOptionPane.showMessageDialog(this, "Error loading images: " + e.getMessage(),
@@ -159,7 +164,7 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
 
                     // Draw the main image
                     try {
-                        BufferedImage image = ImageIO.read(getClass().getResource("/air/airmission.png"));
+                        BufferedImage image = ImageIO.read(getClass().getResource("/img/airmission.png"));
                         Image scaledImage = image.getScaledInstance(380, 310, Image.SCALE_SMOOTH);
                         g2.drawImage(scaledImage, 10, 10, null);
                     } catch (IOException | NullPointerException e) {
@@ -357,7 +362,24 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
             placeObstacleTimer.stop();
             
             SwingUtilities.invokeLater(() -> {
-                showMissionComplete();
+            	
+            	// Show Mission Failed dialog
+            	MissionCompleteDialog dialog = new MissionCompleteDialog(null, roadMapWindow);
+            	dialog.showMissionComplete(); // Show the dialog
+
+            	// Make the window invisible first
+            	this.setVisible(false);
+
+            	// Now dispose the parent window (or Game3)
+            	Window parentWindow = (Window) SwingUtilities.getWindowAncestor(Game3.this);
+            	if (parentWindow != null) {
+            	    parentWindow.dispose();  // Dispose the parent window
+            	}
+
+            	 roadMapWindow.dispose();
+            	// You can also hide Game3 here if it's not already done
+            	Game3.this.setVisible(false);
+               
             });
          
         }
@@ -464,7 +486,7 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
             gameOverDialog.setUndecorated(true); // Remove the title bar and window decorations
 
             // Load and scale the game over image
-            ImageIcon icon = new ImageIcon(getClass().getResource("/gameover.png"));
+            ImageIcon icon = new ImageIcon(getClass().getResource("/img/gameover.png"));
             Image scaledImage = icon.getImage().getScaledInstance(305, 220, Image.SCALE_SMOOTH);
 
             // Create a custom panel for the image and buttons
@@ -480,7 +502,7 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
             imagePanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 5)); // Optional border
 
             // Create and style Play Again button
-            JButton playAgainButton = new JButton("Play Again");
+            JButton playAgainButton = new JButton("Play");
             playAgainButton.setBackground(new Color(165, 42, 42)); // Brown background
             playAgainButton.setForeground(Color.WHITE);           // White text
             playAgainButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -553,56 +575,26 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
             gameOverDialog.setLocationRelativeTo(this);
             gameOverDialog.setVisible(true);
         } else {
-            // Show mission failed screen when out of energy
-//            showMissionFailed();
+        	
+        	// Show Mission Failed dialog
+        	MissionFailedDialog dialog = new MissionFailedDialog(null, roadMapWindow);
+        	dialog.showMissionFailed(); // Show the dialog
+
+        	// Make the window invisible first
+        	this.setVisible(false);
+
+        	// Now dispose the parent window (or Game3)
+        	Window parentWindow = (Window) SwingUtilities.getWindowAncestor(Game3.this);
+        	if (parentWindow != null) {
+        	    parentWindow.dispose();  // Dispose the parent window
+        	}
+
+        	 roadMapWindow.dispose();
+        	// You can also hide Game3 here if it's not already done
+        	Game3.this.setVisible(false);
+
         }
     }
-
-    // Show Mission Complete Dialog
-    private void showMissionComplete() {
-        JDialog missionCompleteDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Mission Complete", true);
-        missionCompleteDialog.setUndecorated(true); // Remove title bar
-
-        // Create a panel to hold the mission complete image and buttons
-        JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.drawImage(missionCompleteImg, 0, 0, 305, 220, null);
-            }
-        };
-        panel.setLayout(null);
-        panel.setPreferredSize(new Dimension(305, 220));
-
-        // Add border
-        panel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 5));
-
-        // Continue Button
-        JButton continueButton = new JButton("Continue");
-        continueButton.setBounds(105, 170, 90, 30);
-        continueButton.setBackground(new Color(165, 42, 42));
-        continueButton.setForeground(Color.WHITE);
-        continueButton.setFocusPainted(false);
-        continueButton.setBorderPainted(false);
-        continueButton.setOpaque(true);
-        addHoverEffect(continueButton, new Color(165, 42, 42), new Color(100, 30, 30));
-        continueButton.addActionListener(e -> {
-            missionCompleteDialog.dispose();
-            // Transition to the next part of your application, e.g., RoadMapWindow
-            // For example:
-            // new RoadMapWindow().setVisible(true);
-            JOptionPane.showMessageDialog(this, "Mission Completed! Proceeding to the next level.");
-            System.exit(0); // Placeholder action
-        });
-
-        panel.add(continueButton);
-
-        missionCompleteDialog.getContentPane().add(panel);
-        missionCompleteDialog.pack();
-        missionCompleteDialog.setLocationRelativeTo(this);
-        missionCompleteDialog.setVisible(true);
-    }
-
    
 
     // Helper method to add hover effect to buttons

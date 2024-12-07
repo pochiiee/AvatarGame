@@ -11,10 +11,23 @@ public class MissionFailedDialog {
 
     // Constructor with correct name
     public MissionFailedDialog(JFrame parentFrame, Object welcomeWindow) {
-        this.parentFrame = parentFrame;
+
+    	if (parentFrame == null) {
+            this.parentFrame = createProxyFrame();
+        } else {
+            this.parentFrame = parentFrame;
+        }
         this.welcomeWindow = welcomeWindow;
     }
 
+    private JFrame createProxyFrame() {
+        JFrame proxyFrame = new JFrame();
+        proxyFrame.setUndecorated(true);
+        proxyFrame.setSize(0, 0); // Invisible size
+        proxyFrame.setLocationRelativeTo(null);
+        return proxyFrame;
+    }
+    
     public void showMissionFailed() {
         // Create a modal dialog for the mission failed screen
         JDialog missionFailedDialog = new JDialog(parentFrame, true); // Use the parent frame as owner
@@ -29,7 +42,7 @@ public class MissionFailedDialog {
         missionFailedLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
 
         try {
-            ImageIcon originalIcon = new ImageIcon("src/failed.png");
+            ImageIcon originalIcon = new ImageIcon("src/img/failed.png");
 
             int imageWidth = 400 - 2;
             int imageHeight = 270 - 2;
@@ -87,4 +100,7 @@ public class MissionFailedDialog {
             }
         });
     }
+    
+    
+    
 }
