@@ -88,6 +88,6 @@ public class WelcomeWindow extends JFrame {
     }
 
     public static void main(String[] args) {
-        new WelcomeWindow();
+        new Game3();
     }
 }

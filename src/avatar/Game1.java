@@ -12,7 +12,7 @@ import javax.imageio.ImageIO;
 
 public class Game1 extends JFrame {
 
-    private RoadMapWindow roadMapWindow;
+    private final RoadMapWindow roadMapWindow;
     private int energy = 3; // Player starts with 3 energy points
 
     public Game1(RoadMapWindow roadMapWindow) {
@@ -31,103 +31,90 @@ public class Game1 extends JFrame {
     }
 
 
-class StartScreen extends JDialog { 
-    public StartScreen(Game1 parent) {
-        super(parent, true); // Make it modal to block interaction with the Game1 frame
+    static class StartScreen extends JDialog {
+        public StartScreen(Game1 parent) {
+            super(parent, true); // Make it modal to block interaction with the Game1 frame
 
-        // Remove title bar
-        setUndecorated(true);
-        
-        // Add custom border to mimic window frame without title bar
-        getRootPane().setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
+            // Remove title bar
+            setUndecorated(true);
 
-        setSize(400, 380); // Updated size
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null); // Center the dialog
-        setResizable(false); // Disable resizing
-        setLayout(null);
+            // Add custom border to mimic window frame without title bar
+            getRootPane().setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
 
-        // Custom panel for background and text rendering
-        JPanel backgroundPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                // Do not call super.paintComponent(g); to prevent filling the background
-                Graphics2D g2 = (Graphics2D) g;
+            setSize(400, 380); // Updated size
+            setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+            setLocationRelativeTo(null); // Center the dialog
+            setResizable(false); // Disable resizing
+            setLayout(null);
 
-                // Enable high-quality rendering for images and text
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            // Custom panel for background and text rendering
+            JPanel backgroundPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    // Do not call super.paintComponent(g); to prevent filling the background
+                    Graphics2D g2 = (Graphics2D) g;
 
-                // Apply texture to the background
-                try {
-                    BufferedImage texture = ImageIO.read(new File("src/texture.png")); // Ensure you have a texture image
-                    Rectangle rect = new Rectangle(0, 0, texture.getWidth(), texture.getHeight());
-                    TexturePaint texturePaint = new TexturePaint(texture, rect);
-                    g2.setPaint(texturePaint);
-                    g2.fillRect(0, 0, getWidth(), getHeight());
-                } catch (IOException e) {
-                    // If texture not found, fill with default transparent background
-                    g2.setColor(new Color(0, 0, 0, 0));
-                    g2.fillRect(0, 0, getWidth(), getHeight());
+                    // Enable high-quality rendering for images and text
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+
+                    // Draw the main image without white background
+                    try {
+                        BufferedImage image = ImageIO.read(new File("src/watermission.png"));
+                        Image scaledImage = image.getScaledInstance(380, 310, Image.SCALE_SMOOTH);
+
+                        int imageX = 10;
+                        int imageY = 10;
+
+                        // Draw the image
+                        g2.drawImage(scaledImage, imageX, imageY, null);
+
+                    } catch (IOException e) {
+                        g2.setColor(Color.RED);
+                        g2.drawString("Failed to load background image", 10, 20);
+                    }
+                }
+            };
+            backgroundPanel.setBounds(0, 0, 400, 380);
+            backgroundPanel.setLayout(null);
+            backgroundPanel.setOpaque(false); // Make the panel transparent
+            add(backgroundPanel);
+
+            // Add Start Button
+            JButton startButton = new JButton("Start");
+            startButton.setFont(new Font("Arial", Font.BOLD, 14));
+            startButton.setFocusPainted(false);
+            startButton.setBackground(new Color(227, 141, 60));
+            startButton.setForeground(Color.WHITE);
+            startButton.setBounds((400 - 100) / 2, 330, 100, 40);
+
+            startButton.setBorderPainted(false); // Remove button border
+            startButton.setOpaque(true);
+
+            // Add hover effect to the button
+            Color originalColor = startButton.getBackground();
+            Color hoverColor = originalColor.darker();
+
+            startButton.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    startButton.setBackground(hoverColor);
                 }
 
-                // Draw the main image without white background
-                try {
-                    BufferedImage image = ImageIO.read(new File("src/watermission.png"));
-                    Image scaledImage = image.getScaledInstance(380, 310, Image.SCALE_SMOOTH);
-
-                    int imageX = 10;
-                    int imageY = 10;
-
-                    // Draw the image
-                    g2.drawImage(scaledImage, imageX, imageY, null);
-
-                } catch (IOException e) {
-                    g2.setColor(Color.RED);
-                    g2.drawString("Failed to load background image", 10, 20);
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    startButton.setBackground(originalColor);
                 }
-            }
-        };
-        backgroundPanel.setBounds(0, 0, 400, 380);
-        backgroundPanel.setLayout(null);
-        backgroundPanel.setOpaque(false); // Make the panel transparent
-        add(backgroundPanel);
+            });
 
-        // Add Start Button
-        JButton startButton = new JButton("Start");
-        startButton.setFont(new Font("Arial", Font.BOLD, 14));
-        startButton.setFocusPainted(false);
-        startButton.setBackground(new Color(227, 141, 60));
-        startButton.setForeground(Color.WHITE);
-        startButton.setBounds((400 - 100) / 2, 330, 100, 40);
-
-        startButton.setBorderPainted(false); // Remove button border
-        startButton.setOpaque(true);
-
-        // Add hover effect to the button
-        Color originalColor = startButton.getBackground();
-        Color hoverColor = originalColor.darker();
-
-        startButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                startButton.setBackground(hoverColor);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                startButton.setBackground(originalColor);
-            }
-        });
-
-        startButton.addActionListener(e -> {
-            dispose(); // Close the StartScreen dialog
-            SwingUtilities.invokeLater(() -> parent.setVisible(true)); // Make the Game1 frame visible after disposing
-        });
-        backgroundPanel.add(startButton);
+            startButton.addActionListener(e -> {
+                dispose(); // Close the StartScreen dialog
+                SwingUtilities.invokeLater(() -> parent.setVisible(true)); // Make the Game1 frame visible after disposing
+            });
+            backgroundPanel.add(startButton);
+        }
     }
-}
 
     // Main Game Panel
     class GamePanel extends JPanel implements ActionListener {
@@ -190,7 +177,7 @@ class StartScreen extends JDialog {
             try {
                 snakeHeadImage = new ImageIcon("src/boat.png").getImage().getScaledInstance(BOAT_SIZE, BOAT_SIZE, Image.SCALE_SMOOTH);
                 snakeBodyImage = new ImageIcon("src/fish.png").getImage();
-                foodImage = new ImageIcon("src/fish.png").getImage();
+                foodImage = new ImageIcon("src//fish.png").getImage();
                 backgroundImage = new ImageIcon("src/waterbg.jpg").getImage();
                 energyIcon = new ImageIcon("src/energy.png").getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
                 aangImage = new ImageIcon("src/aang.png").getImage().getScaledInstance(AANG_SIZE, AANG_SIZE, Image.SCALE_SMOOTH);
@@ -282,14 +269,16 @@ class StartScreen extends JDialog {
             } else {
                 snake.removeLast(); // If no food is eaten, remove the tail
             }
-            if (score >= 50 && timer.isRunning()) {
+            if (score >= 5 && timer.isRunning()) {
                 timer.stop(); // Stop the timer when the mission is complete
-                
+
                 // Use a small delay to ensure all UI updates are complete
                 SwingUtilities.invokeLater(() -> {
                     // Call the MissionCompleteDialog class and pass necessary parameters
                     MissionCompleteDialog missionDialog = new MissionCompleteDialog(Game1.this, roadMapWindow);
-                    missionDialog.setVisible(true); // Make the dialog visible
+                    missionDialog.showMissionComplete();
+                    dispose();
+                    roadMapWindow.unlockGame2();
                 });
             }
         }
@@ -313,7 +302,7 @@ class StartScreen extends JDialog {
                 }
             }
         }
-        
+
         private boolean isCollidingWithFood(Point head) {
             int headX = head.x * TILE_SIZE;
             int headY = head.y * TILE_SIZE;
@@ -325,7 +314,7 @@ class StartScreen extends JDialog {
             int foodSize = isSpecialFood ? AANG_SIZE : TILE_SIZE;
 
             return headX < foodX + foodSize && headX + headSize > foodX &&
-                   headY < foodY + foodSize && headY + headSize > foodY;
+                    headY < foodY + foodSize && headY + headSize > foodY;
         }
 
         private void handleGameOver(String message) {
@@ -427,10 +416,9 @@ class StartScreen extends JDialog {
                 paintImmediately(0, 0, getWidth(), getHeight());
 
                 // Show failed image and transition to WelcomeWindow
-                MissionFailedDialog dialog = new MissionFailedDialog("Game1", roadMapWindow, game1Window);
-                faileddialog.showMissionFailed();
-
-         
+                MissionFailedDialog dialog = new MissionFailedDialog(Game1.this, roadMapWindow);
+                dialog.showMissionFailed();
+                dispose();
             }
         }
 
@@ -446,8 +434,8 @@ class StartScreen extends JDialog {
             });
         }
 
-        
-       
+
+
 
 
         @Override

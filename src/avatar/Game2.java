@@ -1,13 +1,19 @@
 package avatar;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import javax.swing.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 
-public class Game2 {
+public class Game2 extends JFrame {
 
-    class Card {
+    private final RoadMapWindow roadMapWindow;
+
+    static class Card {
         String cardName;
         ImageIcon cardImageIcon;
 
@@ -15,9 +21,13 @@ public class Game2 {
             this.cardName = cardName;
             this.cardImageIcon = cardImageIcon;
         }
+
+        public String toString() {
+            return cardName;
+        }
     }
 
-    String[] cardList = {
+    String[] cardList = { // Track cardNames
             "pair1", "pair2", "pair3", "pair4", "pair5",
             "pair6", "pair7", "pair8", "pair9", "pair10"
     };
@@ -27,21 +37,117 @@ public class Game2 {
     int cardWidth = 110;
     int cardHeight = 148;
 
-    ArrayList<Card> cardSet;
+    ArrayList<Card> cardSet; // Create a deck of cards with cardNames and cardImageIcons
     ImageIcon cardBackImageIcon;
 
+    int boardHeight = rows * cardHeight; // 4*148 = 592px
+
     JFrame frame = new JFrame("Match Cards");
+    JLabel errorLabel = new JLabel();
+    JLabel livesLabel = new JLabel();
+    JLabel scoreLabel = new JLabel();
+    JPanel textPanel = new JPanel();
+    JPanel boardPanel = new JPanel();
+
+    int lives = 3;
     int score = 0;
     int errorCount = 0;
-    int energy = 3; // Initial energy
-    Image energyIcon; // Icon for energy
     ArrayList<JButton> board;
     Timer hideCardTimer;
-    boolean gameReady = true; // Set to true to allow immediate flips
+    boolean gameReady = false;
     JButton card1Selected;
     JButton card2Selected;
 
-    public Game2() {
+    class StartScreen extends JDialog {
+        public StartScreen(JFrame parent) {
+            super(parent, true); // Make it modal to block interaction with the main frame
+
+            // Remove title bar
+            setUndecorated(true);
+
+            // Add custom border to mimic window frame without title bar
+            getRootPane().setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
+
+            setSize(400, 380); // Updated size
+            setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+            setLocationRelativeTo(null); // Center the dialog
+            setResizable(false); // Disable resizing
+            setLayout(null);
+
+            // Custom panel for background and text rendering
+            JPanel backgroundPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g;
+
+                    // Enable high-quality rendering for images and text
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+
+                    // Draw the main image without white background
+                    try {
+                        BufferedImage image = ImageIO.read(new File("src/img/earthmission.png"));
+                        Image scaledImage = image.getScaledInstance(380, 310, Image.SCALE_SMOOTH);
+
+                        int imageX = 10;
+                        int imageY = 10;
+
+                        // Draw the image
+                        g2.drawImage(scaledImage, imageX, imageY, null);
+                    } catch (IOException e) {
+                        g2.setColor(Color.RED);
+                        g2.drawString("Failed to load background image", 10, 20);
+                    }
+                }
+            };
+            backgroundPanel.setBounds(0, 0, 400, 380);
+            backgroundPanel.setLayout(null);
+            backgroundPanel.setOpaque(false); // Make the panel transparent
+            add(backgroundPanel);
+
+            // Add Start Button
+            JButton startButton = new JButton("Start");
+            startButton.setFont(new Font("Arial", Font.BOLD, 14));
+            startButton.setFocusPainted(false);
+            startButton.setBackground(new Color(137, 95, 37));
+            startButton.setForeground(Color.WHITE);
+            startButton.setBounds((400 - 100) / 2, 330, 100, 40);
+
+            startButton.setBorderPainted(false); // Remove button border
+            startButton.setOpaque(true);
+
+            // Add hover effect to the button
+            Color originalColor = startButton.getBackground();
+            Color hoverColor = originalColor.darker();
+
+            startButton.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    startButton.setBackground(hoverColor);
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    startButton.setBackground(originalColor);
+                }
+            });
+
+            startButton.addActionListener(e -> {
+                dispose(); // Close the current StartScreen dialog
+                //roadMapWindow.dispose(); // Close the roadmap window
+                //frame.setVisible(true); //game 2 frame
+            });
+
+            backgroundPanel.add(startButton);
+
+        }
+    }
+
+
+    public Game2(RoadMapWindow roadMapWindow) {
+        this.roadMapWindow = roadMapWindow;
+        new StartScreen(frame).setVisible(true);
         setupCards();
         shuffleCards();
 
@@ -51,32 +157,111 @@ public class Game2 {
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Load energy icon
-        try {
-            Image energyImg = new ImageIcon(getClass().getResource("/img/energy.png")).getImage();
-            energyIcon = energyImg.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(frame, "Failed to load energy icon.");
-            System.exit(1);
-        }
-
+        // Create and add the custom background panel
         BackgroundPanel backgroundPanel = new BackgroundPanel();
-        backgroundPanel.setLayout(new BorderLayout());
+        backgroundPanel.setLayout(new BorderLayout()); // Use BorderLayout for the background panel
         frame.add(backgroundPanel, BorderLayout.CENTER);
 
-        JPanel boardPanel = new JPanel();
-        board = new ArrayList<>();
+        // error,lives, score
+        livesLabel.setFont(new Font("Arial", Font.PLAIN, 40));
+        livesLabel.setText("Lives: " + lives);
+        livesLabel.setForeground(Color.WHITE); // Set text color to white
+        livesLabel.setBounds(8, 50, 300, 30);  // Adjusted position for the first red line
+
+        errorLabel.setFont(new Font("Arial", Font.PLAIN, 40));
+        errorLabel.setText("Errors: " + errorCount);
+        errorLabel.setForeground(Color.WHITE); // Set text color to white
+        errorLabel.setBounds(8, 120, 300, 30);  // Adjusted position for the second red line
+
+        scoreLabel.setFont(new Font("Arial", Font.PLAIN, 40));
+        scoreLabel.setText("Score: " + score);
+        scoreLabel.setForeground(Color.WHITE); // Set text color to white
+        scoreLabel.setBounds(8, 200, 300, 30);  // Adjusted position for the third red line
+
+        // Set text panel size and position on the right side
+        textPanel.setPreferredSize(new Dimension(300, boardHeight));
+        textPanel.setOpaque(false);  // Make text panel background transparent
+        textPanel.setLayout(null); // Use absolute layout for custom positioning
+
+        // Add labels to the panel
+        textPanel.add(livesLabel);  // Add lives on the first red line
+        textPanel.add(errorLabel);  // Error on the second red line
+        textPanel.add(scoreLabel);  // Score on the third red line
+
+        backgroundPanel.add(textPanel, BorderLayout.EAST); // Add text panel to the right of the background panel
+
+        // Card game board (on the left side)
+        board = new ArrayList<JButton>();
         boardPanel.setLayout(new GridLayout(rows, columns));
         boardPanel.setOpaque(false);
 
-        for (Card card : cardSet) {
-            JButton tile = new JButton(cardBackImageIcon);
-            tile.setPreferredSize(new Dimension(cardWidth, cardHeight));
+        for (int i = 0; i < cardSet.size(); i++) {
+            JButton tile = new JButton();
+            tile.setPreferredSize(new Dimension(cardWidth, cardHeight)); // Set size based on card size
+            tile.setIcon(cardSet.get(i).cardImageIcon);
             tile.setFocusable(false);
-            tile.setBorderPainted(false);
-            tile.setContentAreaFilled(false);
-            tile.setOpaque(false);
-            tile.addActionListener(e -> handleCardFlip(tile));
+            tile.setBorderPainted(false); // Remove border
+            tile.setContentAreaFilled(false); // Make button background transparent
+            tile.setOpaque(false); // Make button itself transparent
+
+            tile.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (!gameReady) {
+                        return;
+                    }
+                    JButton tile = (JButton) e.getSource();
+                    if (tile.getIcon() == cardBackImageIcon) {
+                        if (card1Selected == null) {
+                            card1Selected = tile;
+                            int index = board.indexOf(card1Selected);
+                            card1Selected.setIcon(cardSet.get(index).cardImageIcon);
+                        } else if (card2Selected == null) {
+                            card2Selected = tile;
+                            int index = board.indexOf(card2Selected);
+                            card2Selected.setIcon(cardSet.get(index).cardImageIcon);
+
+                            if (card1Selected.getIcon() != card2Selected.getIcon()) {
+                                errorCount++;
+                                errorLabel.setText("Errors: " + errorCount);
+
+                                // Reduce lives after every 2 errors
+                                if (errorCount % 3 == 0) {
+                                    lives--;
+                                    livesLabel.setText("Lives: " + lives);
+
+                                    if (lives == 0) {
+
+                                        MissionFailedDialog dialog = new MissionFailedDialog(Game2.this, roadMapWindow);
+                                        dialog.showMissionFailed();
+                                        frame.dispose();
+                                        Game2.this.setVisible(false); 
+                                    }
+
+                                }
+                                hideCardTimer.start();
+                            } else {
+                                score += 5; // Increment score for a match
+                                scoreLabel.setText("Score: " + score);
+
+                                card1Selected = null;
+                                card2Selected = null;
+                            }
+                            if (allCardsFaceUp()) {
+                                SwingUtilities.invokeLater(() -> {
+                                    // Call the MissionCompleteDialog class and pass necessary parameters
+                                    MissionCompleteDialog missionDialog = new MissionCompleteDialog(Game2.this, roadMapWindow);
+                                    missionDialog.showMissionComplete();
+                                    dispose();
+                                    Game2.this.setVisible(false); // Hide the current Game2 window
+                                    roadMapWindow.unlockGame3();
+                                });
+
+                            }
+                        }
+                    }
+                }
+            });
             board.add(tile);
             boardPanel.add(tile);
         }
@@ -84,251 +269,85 @@ public class Game2 {
         backgroundPanel.add(boardPanel, BorderLayout.CENTER);
 
         frame.setVisible(true);
-
-        hideCardTimer = new Timer(500, e -> hideCards());
-        hideCardTimer.setRepeats(false);
-    }
-
-    private void handleCardFlip(JButton tile) {
-        if (!gameReady) return;
-
-        if (tile.getIcon() == cardBackImageIcon) {
-            if (card1Selected == null) {
-                card1Selected = tile;
-                int index = board.indexOf(card1Selected);
-                card1Selected.setIcon(cardSet.get(index).cardImageIcon);
-            } else if (card2Selected == null) {
-                card2Selected = tile;
-                int index = board.indexOf(card2Selected);
-                card2Selected.setIcon(cardSet.get(index).cardImageIcon);
-
-                if (!card1Selected.getIcon().equals(card2Selected.getIcon())) {
-                    errorCount++;
-                    repaintEnergy(); // Immediately update errors on the UI
-                    if (errorCount % 3 == 0) {
-                        energy--;
-                        if (energy == 0) {
-                            showMissionFailed();
-                        } else {
-                            handleGameOver();
-                        }
-                    }
-                    hideCardTimer.start();
-                } else {
-                    score += 5;
-                    if (score == 50) { // 10 pairs matched
-                        showMissionComplete();
-                    }
-                    card1Selected = null;
-                    card2Selected = null;
-                }
+        // Create timer to hide cards after a delay (used for flipping cards back)
+        hideCardTimer = new Timer(1500, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hideCards();
             }
-        }
-    }
-
-    private void handleGameOver() {
-        JDialog gameOverDialog = createGameOverDialog();
-        gameOverDialog.setVisible(true);
-    }
-
-    private JDialog createGameOverDialog() {
-        JDialog gameOverDialog = new JDialog(frame, true);
-        gameOverDialog.setUndecorated(true);
-        gameOverDialog.setSize(400, 250);
-        gameOverDialog.setLocationRelativeTo(frame);
-
-        JLabel gameOverImageLabel = new JLabel();
-        gameOverImageLabel.setBounds(0, 0, 400, 250);
-        gameOverImageLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 3));
-
-        try {
-            ImageIcon gameOverIcon = new ImageIcon(getClass().getResource("/img/gameover.png"));
-            Image scaledImage = gameOverIcon.getImage().getScaledInstance(394, 244, Image.SCALE_SMOOTH);
-            gameOverImageLabel.setIcon(new ImageIcon(scaledImage));
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(frame, "Failed to load game over image.");
-        }
-
-        JButton playAgainButton = new JButton("Play Again");
-        JButton exitButton = new JButton("Exit");
-
-        playAgainButton.setBounds(125, 200, 100, 25);
-        exitButton.setBounds(235, 200, 70, 25);
-
-        playAgainButton.setFocusPainted(false);
-        playAgainButton.setBackground(new Color(165, 42, 42));
-        playAgainButton.setForeground(Color.WHITE);
-
-        exitButton.setFocusPainted(false);
-        exitButton.setBackground(new Color(165, 42, 42));
-        exitButton.setForeground(Color.WHITE);
-
-        playAgainButton.addActionListener(e -> {
-            gameOverDialog.dispose();
-            restartGame(); // Restart the game while preserving energy
         });
-
-        exitButton.addActionListener(e -> System.exit(0));
-
-        gameOverImageLabel.setLayout(null);
-        gameOverImageLabel.add(playAgainButton);
-        gameOverImageLabel.add(exitButton);
-        gameOverDialog.add(gameOverImageLabel);
-
-        return gameOverDialog;
+        hideCardTimer.setRepeats(false);
+        hideCardTimer.start();
     }
 
-    private void showMissionComplete() {
-        JDialog missionCompleteDialog = new JDialog(frame, true);
-        missionCompleteDialog.setUndecorated(true);
-        missionCompleteDialog.setSize(400, 250);
-        missionCompleteDialog.setLocationRelativeTo(frame);
-
-        JLabel missionCompleteLabel = new JLabel();
-        missionCompleteLabel.setBounds(0, 0, 400, 250);
-
-        try {
-            ImageIcon missionCompleteIcon = new ImageIcon(getClass().getResource("/img/missioncomplete.png"));
-            Image scaledImage = missionCompleteIcon.getImage().getScaledInstance(394, 244, Image.SCALE_SMOOTH);
-            missionCompleteLabel.setIcon(new ImageIcon(scaledImage));
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(frame, "Failed to load mission complete image.");
-        }
-
-        JButton continueButton = new JButton("Continue");
-        continueButton.setBounds(150, 200, 100, 25);
-        continueButton.setFocusPainted(false);
-        continueButton.setBackground(new Color(165, 42, 42));
-        continueButton.setForeground(Color.WHITE);
-
-        continueButton.addActionListener(e -> {
-            missionCompleteDialog.dispose();
-            frame.dispose();
-        });
-
-        missionCompleteLabel.setLayout(null);
-        missionCompleteLabel.add(continueButton);
-        missionCompleteDialog.add(missionCompleteLabel);
-
-        missionCompleteDialog.setVisible(true);
-    }
-
-    private void showMissionFailed() {
-        JDialog missionFailedDialog = new JDialog(frame, true);
-        missionFailedDialog.setUndecorated(true);
-        missionFailedDialog.setSize(400, 250);
-        missionFailedDialog.setLocationRelativeTo(frame);
-
-        JLabel missionFailedLabel = new JLabel();
-        missionFailedLabel.setBounds(0, 0, 400, 250);
-
-        try {
-            ImageIcon missionFailedIcon = new ImageIcon(getClass().getResource("/img/failed.png"));
-            Image scaledImage = missionFailedIcon.getImage().getScaledInstance(394, 244, Image.SCALE_SMOOTH);
-            missionFailedLabel.setIcon(new ImageIcon(scaledImage));
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(frame, "Failed to load mission failed image.");
-        }
-
-        JButton okButton = new JButton("OK");
-        okButton.setBounds(165, 200, 100, 25);
-        okButton.setFocusPainted(false);
-        okButton.setBackground(new Color(165, 42, 42));
-        okButton.setForeground(Color.WHITE);
-
-        okButton.addActionListener(e -> {
-            missionFailedDialog.dispose();
-            System.exit(0);
-        });
-
-        missionFailedLabel.setLayout(null);
-        missionFailedLabel.add(okButton);
-        missionFailedDialog.add(missionFailedLabel);
-
-        missionFailedDialog.setVisible(true);
-    }
-
-    private void restartGame() {
-        // Reset game state but preserve energy
-        score = 0;
-        errorCount = 0;
-        card1Selected = null;
-        card2Selected = null;
-        gameReady = false; // Prevent actions during the setup
-
-        // Reset cards
-        for (JButton tile : board) {
-            tile.setIcon(cardBackImageIcon);
-        }
-
-        setupCards();
-        shuffleCards();
-
-        // Allow game actions after resetting
-        gameReady = true;
-        repaintEnergy();
-    }
-
-    private void setupCards() {
-        cardSet = new ArrayList<>();
+    void setupCards() {
+        cardSet = new ArrayList<Card>();
         for (String cardName : cardList) {
-            Image cardImg = new ImageIcon(getClass().getResource("/img/" + cardName + ".png")).getImage();
-            cardSet.add(new Card(cardName, new ImageIcon(cardImg.getScaledInstance(cardWidth, cardHeight, Image.SCALE_SMOOTH))));
+            // Load each card image
+            Image cardImg = new ImageIcon("src/img/" + cardName + ".png").getImage();
+            ImageIcon cardImageIcon = new ImageIcon(cardImg.getScaledInstance(cardWidth, cardHeight, java.awt.Image.SCALE_SMOOTH));
+
+            // Create card object and add to cardSet
+            Card card = new Card(cardName, cardImageIcon);
+            cardSet.add(card);
         }
         cardSet.addAll(cardSet);
 
-        Image cardBackImg = new ImageIcon(getClass().getResource("/img/cardcover.png")).getImage();
-        cardBackImageIcon = new ImageIcon(cardBackImg.getScaledInstance(cardWidth, cardHeight, Image.SCALE_SMOOTH));
+        // Load the back card image
+        Image cardBackImg = new ImageIcon("src/img/cardcover.png").getImage();
+        cardBackImageIcon = new ImageIcon(cardBackImg.getScaledInstance(cardWidth, cardHeight, java.awt.Image.SCALE_SMOOTH));
     }
 
-    private void shuffleCards() {
+    void shuffleCards() {
+        System.out.println(cardSet);
+        // Shuffle
         for (int i = 0; i < cardSet.size(); i++) {
-            int j = (int) (Math.random() * cardSet.size());
+            int j = (int) (Math.random() * cardSet.size()); // Get random index
+            // Swap
             Card temp = cardSet.get(i);
             cardSet.set(i, cardSet.get(j));
             cardSet.set(j, temp);
         }
+        System.out.println(cardSet);
     }
 
-    private void hideCards() {
-        if (gameReady && card1Selected != null && card2Selected != null) {
+    void hideCards() {
+        if (gameReady && card1Selected != null && card2Selected != null) { // Only flip 2 cards
             card1Selected.setIcon(cardBackImageIcon);
-            card2Selected.setIcon(cardBackImageIcon);
             card1Selected = null;
+            card2Selected.setIcon(cardBackImageIcon);
             card2Selected = null;
-        } else {
-            for (JButton tile : board) {
-                tile.setIcon(cardBackImageIcon);
+        } else { // Flip all cards face down
+            for (int i = 0; i < board.size(); i++) {
+                board.get(i).setIcon(cardBackImageIcon);
             }
             gameReady = true;
         }
     }
 
-    private void repaintEnergy() {
-        frame.repaint();
+    private boolean allCardsFaceUp() {
+        for (JButton card : board) {
+            if (card.getIcon() == cardBackImageIcon) {
+                return false; // Found a card that is still face down
+            }
+        }
+        return true; // All cards are face up
     }
 
+    // Custom JPanel class to display background image
     class BackgroundPanel extends JPanel {
-        private final Image backgroundImage;
+        private Image backgroundImage;
 
         public BackgroundPanel() {
-            backgroundImage = new ImageIcon(getClass().getResource("/img/earth_temple.png")).getImage();
+            // Load the image (adjust the path to your image file)
+            backgroundImage = new ImageIcon("src/img/earth_temple.png").getImage();
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
+            // Draw the background image, scaling it to fill the panel
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-
-            // Draw energy icons
-            for (int i = 0; i < energy; i++) {
-                g.drawImage(energyIcon, 10 + (i * 40), 10, this);
-            }
-
-            // Display error count below energy icons
-            g.setColor(Color.WHITE);
-            g.setFont(new Font("Arial", Font.BOLD, 20));
-            g.drawString("Errors: " + errorCount, 10, 70);
         }
     }
 }

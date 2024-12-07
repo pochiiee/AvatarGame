@@ -8,13 +8,13 @@ import java.io.*;
 import java.util.Properties;
 
 public class RoadMapWindow extends JFrame {
-    private Image backgroundImage;
+    private final Image backgroundImage;
 
     // Declare buttons as instance variables
     private static OvalButton game1Button;
     private static OvalButton game2Button;
-    private OvalButton game3Button;
-    private OvalButton game4Button;
+    private static OvalButton game3Button;
+    private static OvalButton game4Button;
 
     private static final String SAVE_FILE = "button_positions.properties"; // Save file for button positions
 
@@ -62,18 +62,28 @@ public class RoadMapWindow extends JFrame {
         game1Button.addActionListener(e -> {
             if (!game1Button.isLocked()) {
                 new Game1(this).setVisible(true); // Pass the current `RoadMapWindow` instance to `Game1`
+                
+                dispose(); 
             } else {
                 JOptionPane.showMessageDialog(this, "Game 1 is locked! Complete the required steps to unlock.");
             }
         });
-        
-     // Add functionality to Game 1 button
+
+        // Add functionality to Game 1 button
         game2Button.addActionListener(e -> {
             if (!game2Button.isLocked()) {
-            	 new Game2();
+                Game2 game2Instance = new Game2(this); // Create an instance of Game2
+                game2Instance.setVisible(true);
+                
+                dispose(); 
+                
+                if (game2Instance != null) { // Check if the Game2 instance is not null
+                    game2Instance.dispose(); // Dispose the Game2 instance when done
+                }
             } else {
-                JOptionPane.showMessageDialog(this, "Game 1 is locked! Complete the required steps to unlock.");
+                JOptionPane.showMessageDialog(this, "Game 2 is locked! Complete the required steps to unlock.");
             }
+
         });
 
         // Add hover listeners for locked games
@@ -100,31 +110,31 @@ public class RoadMapWindow extends JFrame {
             properties.load(fis);
 
             game1Button.setBounds(
-                Integer.parseInt(properties.getProperty("game1.x", "260")),
-                Integer.parseInt(properties.getProperty("game1.y", "720")),
-                130, 65
+                    Integer.parseInt(properties.getProperty("game1.x", "260")),
+                    Integer.parseInt(properties.getProperty("game1.y", "720")),
+                    130, 65
             );
             game2Button.setBounds(
-                Integer.parseInt(properties.getProperty("game2.x", "540")),
-                Integer.parseInt(properties.getProperty("game2.y", "500")),
-                130, 65
+                    Integer.parseInt(properties.getProperty("game2.x", "540")),
+                    Integer.parseInt(properties.getProperty("game2.y", "500")),
+                    130, 65
             );
             game3Button.setBounds(
-                Integer.parseInt(properties.getProperty("game3.x", "960")),
-                Integer.parseInt(properties.getProperty("game3.y", "330")),
-                132, 66 // Default 2% size increase
+                    Integer.parseInt(properties.getProperty("game3.x", "960")),
+                    Integer.parseInt(properties.getProperty("game3.y", "330")),
+                    132, 66 // Default 2% size increase
             );
             game4Button.setBounds(
-                Integer.parseInt(properties.getProperty("game4.x", "1320")),
-                Integer.parseInt(properties.getProperty("game4.y", "510")),
-                130, 65
+                    Integer.parseInt(properties.getProperty("game4.x", "1320")),
+                    Integer.parseInt(properties.getProperty("game4.y", "510")),
+                    130, 65
             );
         } catch (IOException e) {
             // If the file doesn't exist, set default positions
-            game1Button.setBounds(260, 720, 130, 65);
-            game2Button.setBounds(540, 500, 130, 65);
-            game3Button.setBounds(960, 330, 132, 66);
-            game4Button.setBounds(1320, 510, 130, 65);
+            game1Button.setBounds(279, 535, 108, 55);
+            game2Button.setBounds(259, 270, 110, 56);
+            game3Button.setBounds(710, 169, 114, 57);
+            game4Button.setBounds(890, 371, 116, 55);
         }
     }
 
@@ -160,7 +170,16 @@ public class RoadMapWindow extends JFrame {
         game1Button.setForeground(Color.RED); // Change text color to red
         game1Button.setEnabled(false); // Optionally disable Game 1 button
         JOptionPane.showMessageDialog(this, "Game 2 Unlocked!"); // Notify the player
-        
+
+    }
+
+    public void unlockGame3() {
+        game3Button.setLocked(false); // Unlock Game 2
+        game2Button.setText("Completed"); // Update Game 1 button text
+        game2Button.setForeground(Color.RED); // Change text color to red
+        game2Button.setEnabled(false); // Optionally disable Game 1 button
+        JOptionPane.showMessageDialog(this, "Game 3 Unlocked!"); // Notify the player
+
     }
 
     // Custom button class with oval shape, hover effect, and lock overlay

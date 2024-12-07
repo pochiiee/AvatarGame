@@ -1,86 +1,104 @@
+package avatar;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class MissionFailedDialog {
+public class MissionCompleteDialog {
 
-    public void showMissionFailed() {
-        // Create a modal dialog for the mission complete screen
-        //JDialog missionFailedDialog = new JDialog(Game1.this, true); // Use Game1.this as the parent
-        JDialog missionFailedDialog = new JDialog((Frame) null, true); // Use null for the parent window, making it modal
-        missionFailedDialog.setSize(400, 270); // Set the dialog size
-        missionFailedDialog.setLayout(null); // Use absolute positioning
-        missionFailedDialog.setUndecorated(true); // Remove the title bar
-        missionFailedDialog.setLocationRelativeTo(null); // Center relative to the screen
+    private final JFrame parentFrame; // Store the parent frame if needed
+    private final Object roadMapWindow; // Optional reference to the roadmap or other objects
 
-        // Add the mission complete image
+    public MissionCompleteDialog(JFrame parentFrame, Object roadMapWindow) {
+        this.parentFrame = parentFrame;
+        this.roadMapWindow = roadMapWindow;
+    }
+
+    public void showMissionComplete() {
+        // Create the dialog and set its properties
+        JDialog missionCompleteDialog = new JDialog(parentFrame, true); // Modal dialog
+        missionCompleteDialog.setSize(400, 270); // Dialog size
+        missionCompleteDialog.setLayout(null); // Absolute positioning
+        missionCompleteDialog.setUndecorated(true); // Remove title bar
+        missionCompleteDialog.setLocationRelativeTo(parentFrame); // Center on the parent frame
+
+        // Create the label to hold the "Mission Complete" image
         JLabel missionCompleteLabel = new JLabel();
         missionCompleteLabel.setBounds(0, 0, 400, 260);
 
-        // Magdagdag ng gray na border sa gilid ng imahe
-        int borderSize = 0; // Size ng border
+        // Optional border around the image
+        int borderSize = 1; // Adjust this if needed
         missionCompleteLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY, borderSize));
 
+        // Load the "Mission Complete" image
         try {
-            ImageIcon originalIcon = new ImageIcon(getClass().getResource("/img/failed.png"));
+            ImageIcon originalIcon = new ImageIcon("src/missioncomplete.png");
 
-            // I-adjust ang size ng imahe upang hindi matakpan ang border
+            // Scale the image to fit within the label
             int imageWidth = 400 - (2 * borderSize);
             int imageHeight = 270 - (2 * borderSize);
             Image scaledImage = originalIcon.getImage().getScaledInstance(imageWidth, imageHeight, Image.SCALE_SMOOTH);
-
-            // Gumawa ng ImageIcon mula sa scaled image
             ImageIcon scaledIcon = new ImageIcon(scaledImage);
 
-            // Itakda ang icon ng label at i-center ito
+            // Set the scaled image as the label's icon
             missionCompleteLabel.setIcon(scaledIcon);
             missionCompleteLabel.setHorizontalAlignment(JLabel.CENTER);
             missionCompleteLabel.setVerticalAlignment(JLabel.CENTER);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Failed to load 'failed.png': " + e.getMessage(),
+            JOptionPane.showMessageDialog(null, "Failed to load 'missioncomplete.png': " + e.getMessage(),
                     "Image Load Error", JOptionPane.ERROR_MESSAGE);
         }
 
-        missionFailedDialog.add(missionCompleteLabel);
+        missionCompleteDialog.add(missionCompleteLabel); // Add the label to the dialog
 
-        // Add the "Continue" button overlaying the image
-        JButton backButton = new JButton("OK");
-        // Pinalaki ang width ng button at in-adjust ang x-coordinate upang manatiling naka-center
-        backButton.setBounds(160, 235, 70, 25); // Pinalaki ang size at in-adjust ang posisyon
-        backButton.setFocusPainted(false);
-        Color normalColor = new Color(137, 95, 37); // Original color
-        Color hoverColor = normalColor.darker();    // Darker color for hover effect
-        backButton.setBackground(normalColor);
-        backButton.setForeground(Color.WHITE);
-        backButton.setFont(new Font("Arial", Font.BOLD, 14));
-        backButton.setBorderPainted(false); // Remove button border
-        backButton.setOpaque(true);
+        // Create the "Continue" button
+        JButton continueButton = new JButton("Continue");
+        continueButton.setBounds(150, 235, 100, 25); // Position and size of the button
+        continueButton.setFocusPainted(false); // Remove focus outline
+        continueButton.setBackground(new Color(137, 95, 37)); // Button background color
+        continueButton.setForeground(Color.WHITE); // Button text color
+        continueButton.setFont(new Font("Arial", Font.BOLD, 14)); // Font styling
+        continueButton.setBorderPainted(false); // Remove button border
+        continueButton.setOpaque(true); // Ensure the button is opaqu
 
-        // Add hover effect to the button
-        addHoverEffect(backButton, normalColor, hoverColor);
 
-        // Add action listener to handle button click
-        backButton.addActionListener(e -> {
-            missionFailedDialog.dispose(); // Close the mission complete dialog
-            // You can add any further actions here when the dialog is closed (like opening the next screen)
+        // Add hover effect for the button
+        Color normalColor = new Color(137, 95, 37);
+        Color hoverColor = normalColor.darker();
+        addHoverEffect(continueButton, normalColor, hoverColor);
+
+        // Add an action listener for the "Continue" button
+        continueButton.addActionListener(e -> {
+            missionCompleteDialog.dispose(); // Close the dialog
+
+            if (roadMapWindow != null) {
+                // Ensure roadMapWindow is a JFrame or something that supports setVisible
+                if (roadMapWindow instanceof JFrame) {
+                    ((JFrame) roadMapWindow).setVisible(true); // Make the roadmap window visible
+                } else {
+                    System.out.println("roadMapWindow is not of type JFrame.");
+                }
+            }
         });
 
-        // Add components to the label
-        missionCompleteLabel.setLayout(null); // Enable absolute positioning for components inside the label
-        missionCompleteLabel.add(backButton); // Add the button to the image label
-        // Ensure the dialog disposes cleanly when requested
-        missionFailedDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        // Add the button to the label (overlapping the image)
+        missionCompleteLabel.setLayout(null);
+        missionCompleteDialog.setLocationRelativeTo(null);
+        missionCompleteLabel.add(continueButton);
 
-        // Show the dialog
-        missionFailedDialog.setVisible(true); // Show the dialog
+        // Ensure the dialog disposes cleanly
+        missionCompleteDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+        // Display the dialog
+        missionCompleteDialog.setVisible(true);
     }
 
-    // Helper method to add hover effect to buttons
     private void addHoverEffect(JButton button, Color normalColor, Color hoverColor) {
         button.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent evt) {
                 button.setBackground(hoverColor);
             }
+
             public void mouseExited(MouseEvent evt) {
                 button.setBackground(normalColor);
             }
