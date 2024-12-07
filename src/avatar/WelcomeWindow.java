@@ -6,20 +6,16 @@ import java.awt.event.*;
 
 public class WelcomeWindow extends JFrame {
 
-    private final RoadMapWindow roadMapWindow;
-
+   
     public static void main(String[] args) {
-        // Instantiate the roadMapWindow before passing it to Game3
-        RoadMapWindow roadMapWindow = new RoadMapWindow();
-        new Game3(roadMapWindow);
+    
+        new WelcomeWindow();
     }
 
     private Image backgroundImage;
 
     public WelcomeWindow() {
-
-        // Initialize roadMapWindow here, or pass it to constructor from another class
-        roadMapWindow = new RoadMapWindow();
+       
 
         // Load the background image
         ImageIcon icon = new ImageIcon("src/img/welcomee.png");
