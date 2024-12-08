@@ -62,7 +62,7 @@ public class Game1 extends JFrame {
 
                     // Draw the main image without white background
                     try {
-                        BufferedImage image = ImageIO.read(new File("src/img/watermission.png"));
+                        BufferedImage image = ImageIO.read(new File("src/img/watermision1.png"));
                         Image scaledImage = image.getScaledInstance(380, 310, Image.SCALE_SMOOTH);
 
                         int imageX = 10;
@@ -86,7 +86,7 @@ public class Game1 extends JFrame {
             JButton startButton = new JButton("Start");
             startButton.setFont(new Font("Arial", Font.BOLD, 14));
             startButton.setFocusPainted(false);
-            startButton.setBackground(new Color(227, 141, 60));
+            startButton.setBackground(new Color(0, 155, 155)); // Aqua Blue color);
             startButton.setForeground(Color.WHITE);
             startButton.setBounds((400 - 100) / 2, 330, 100, 40);
 
@@ -264,7 +264,7 @@ public class Game1 extends JFrame {
                     isSpecialFood = true;
                 }
 
-                if (score < 50) {
+                if (score < 60) {
                     spawnFood(); // Spawn a new food
                 }
             } else {

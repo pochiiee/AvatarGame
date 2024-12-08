@@ -66,6 +66,7 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
     public Game3(RoadMapWindow roadMapWindow) {
     	
     	  this.roadMapWindow = roadMapWindow;
+    	 
     	  
         // Get screen dimensions
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -164,7 +165,7 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
 
                     // Draw the main image
                     try {
-                        BufferedImage image = ImageIO.read(getClass().getResource("/img/airmission.png"));
+                        BufferedImage image = ImageIO.read(getClass().getResource("/img/airmission1.png"));
                         Image scaledImage = image.getScaledInstance(380, 310, Image.SCALE_SMOOTH);
                         g2.drawImage(scaledImage, 10, 10, null);
                     } catch (IOException | NullPointerException e) {
@@ -182,7 +183,7 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
             JButton startButton = new JButton("Start");
             startButton.setFont(new Font("Arial", Font.BOLD, 14));
             startButton.setFocusPainted(false);
-            startButton.setBackground(new Color(227, 141, 60));
+            startButton.setBackground(new Color(10, 180, 190));
             startButton.setForeground(Color.WHITE);
             startButton.setBounds(150, 330, 100, 40);
             startButton.setBorderPainted(false);
@@ -257,7 +258,7 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
 
         playButton.setFocusable(false);
         playButton.setFont(new Font("Arial", Font.BOLD, 20));
-        playButton.setBackground(new Color(227, 141, 60));
+        playButton.setBackground(new Color(30, 171, 205));
         playButton.setForeground(Color.WHITE);
         playButton.setBorderPainted(false);
         playButton.setOpaque(true);
@@ -377,8 +378,15 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
             	}
 
             	 roadMapWindow.dispose();
+            	 
+            	 
+            	  String username = LoginWindow.getLoggedInUsername();  // Get the logged-in username
+                  AccountManager.updatePlayerStatus(username);  // Update status
+                  
             	// You can also hide Game3 here if it's not already done
             	Game3.this.setVisible(false);
+            	
+            	new LastWindow();
                
             });
          

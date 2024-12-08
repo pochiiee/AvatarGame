@@ -5,6 +5,9 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class LoginWindow extends JFrame {
+	
+	 private static String loggedInUsername = null;
+	 private static LoginWindow instance;
 
     private Image backgroundImage;
     private JProgressBar progressBar;
@@ -111,6 +114,7 @@ public class LoginWindow extends JFrame {
             String password = new String(passwordField.getPassword());
 
             if (AccountManager.isValidAccount(username, password)) {
+            	 loggedInUsername = username;
                 showLoadingScreen(); // Show loading animation
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid credentials! Please try again.");
@@ -151,7 +155,22 @@ public class LoginWindow extends JFrame {
 
         setVisible(true);
     }
+    
+    public static void setLoggedInUsername(String username) {
+        loggedInUsername = username;
+    }
 
+    
+    public static String getLoggedInUsername() {
+    	  return loggedInUsername;
+    }
+    
+    public static LoginWindow getInstance() {
+        if (instance == null) {
+            instance = new LoginWindow();
+        }
+        return instance;
+    }
     private void showLoadingScreen() {
         // Create a loading panel
         JPanel loadingPanel = new JPanel() {

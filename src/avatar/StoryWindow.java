@@ -15,7 +15,9 @@ public class StoryWindow extends JFrame {
         "src/story/story1.png",
         "src/story/story2.png",
         "src/story/story3.png",
-        "src/story/story4.png"
+        "src/story/story4.png",
+        "src/story/missionbg.png"
+        
     };
 
     private String[] soundPaths = {   // Corresponding sound files
@@ -86,28 +88,33 @@ public class StoryWindow extends JFrame {
         playBackgroundMusic(currentImageIndex);
     }
 
-    // Method to set the background image
     private void setBackgroundImage(int index) {
         ImageIcon icon = new ImageIcon(imagePaths[index]);
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        Image scaledImage = icon.getImage().getScaledInstance(screenSize.width, screenSize.height, Image.SCALE_SMOOTH);
-        backgroundLabel.setIcon(new ImageIcon(scaledImage));
+        if (icon.getIconWidth() == -1) { // Image failed to load
+            System.out.println("Image not found: " + imagePaths[index]);
+        } else {
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            Image scaledImage = icon.getImage().getScaledInstance(screenSize.width, screenSize.height, Image.SCALE_SMOOTH);
+            backgroundLabel.setIcon(new ImageIcon(scaledImage));
+        }
     }
 
-    // Method to play background music
     private void playBackgroundMusic(int index) {
         try {
             // Stop and close the previous clip before playing the new one
             stopBackgroundMusic();
 
-            File musicPath = new File(soundPaths[index]);
-            if (musicPath.exists()) {
-                AudioInputStream audioInput = AudioSystem.getAudioInputStream(musicPath);
-                clip = AudioSystem.getClip();
-                clip.open(audioInput);
-                clip.start(); // Start the new music
-            } else {
-                System.out.println("Music file not found: " + soundPaths[index]);
+            // Skip playing music for the last image (mission image)
+            if (index < soundPaths.length) {
+                File musicPath = new File(soundPaths[index]);
+                if (musicPath.exists()) {
+                    AudioInputStream audioInput = AudioSystem.getAudioInputStream(musicPath);
+                    clip = AudioSystem.getClip();
+                    clip.open(audioInput);
+                    clip.start(); // Start the new music
+                } else {
+                    System.out.println("Music file not found: " + soundPaths[index]);
+                }
             }
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
             e.printStackTrace();
