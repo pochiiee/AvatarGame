@@ -89,9 +89,9 @@ public class RoadMapWindow extends JFrame {
      // Add functionality to Game 1 button
         game3Button.addActionListener(e -> {
             if (!game1Button.isLocked()) {
-            	//dito lagay game3
-            	new Game3(this).setVisible(true);
-           
+            
+            	new Game3();
+            	
             } else {
                 JOptionPane.showMessageDialog(this, "Game 3 is locked! Complete the required steps to unlock.");
             }
@@ -102,6 +102,7 @@ public class RoadMapWindow extends JFrame {
             if (!game1Button.isLocked()) {
             	
             	//dito lagay game4
+            	new Game4(this).setVisible(true);
                 
                
             } else {
