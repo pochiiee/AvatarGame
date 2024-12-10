@@ -8,6 +8,8 @@ import java.util.Random;
 
 public class Game3 extends JPanel implements ActionListener, KeyListener {
     private static final long serialVersionUID = 1L;
+    private final RoadMapWindow roadMapWindow;
+    private Image energyIcon;
 
     class Block {
         int x, y, width, height;
@@ -43,20 +45,28 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
         }
 
         void updateVelocity() {
-            if (this.direction == 'U') {
-                this.velocityX = 0;
-                this.velocityY = -tileSize / 4;
-            } else if (this.direction == 'D') {
-                this.velocityX = 0;
-                this.velocityY = tileSize / 4;
-            } else if (this.direction == 'L') {
-                this.velocityX = -tileSize / 4;
-                this.velocityY = 0;
-            } else if (this.direction == 'R') {
-                this.velocityX = tileSize / 4;
-                this.velocityY = 0;
+            int speed = tileSize / 4; // Keeps the original speed
+            switch (this.direction) {
+                case 'U' -> { 
+                    this.velocityX = 0; 
+                    this.velocityY = -speed; 
+                }
+                case 'D' -> { 
+                    this.velocityX = 0; 
+                    this.velocityY = speed; 
+                }
+                case 'L' -> { 
+                    this.velocityX = -speed; 
+                    this.velocityY = 0; 
+                }
+                case 'R' -> { 
+                    this.velocityX = speed; 
+                    this.velocityY = 0; 
+                }
             }
         }
+
+
 
         void reset() {
             this.x = this.startX;
@@ -116,7 +126,11 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
     private int score;
     private boolean gameOver;
 
-    public Game3() {
+    
+
+    public Game3(RoadMapWindow roadMapWindow) {
+    	
+    	 this.roadMapWindow = roadMapWindow;
         JFrame frame = new JFrame("Pac-Man");
 
         goldCoinImage = new ImageIcon("src/powerFood.png").getImage();
@@ -142,7 +156,10 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
         avatarDownImage = new ImageIcon(getClass().getResource("/img/down.png")).getImage();
         avatarLeftImage = new ImageIcon(getClass().getResource("/img/left.png")).getImage();
         avatarRightImage = new ImageIcon(getClass().getResource("/img/right.png")).getImage();
-
+        energyIcon = new ImageIcon("/img/energy.png").getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        
+        
+        
         new StartScreen(
             frame,
             "src/img/fireMission.png",
@@ -160,8 +177,18 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
         resetPositions();
         score = 0;
         gameOver = false;
-        gameLoop = new Timer(60, this); // 20fps
-        gameLoop.start();
+        if (gameLoop != null) {
+    gameLoop.stop();
+}
+gameLoop = new Timer(60, e -> {
+    move();
+    repaint();
+    if (gameOver) {
+        gameLoop.stop();
+    }
+});
+gameLoop.setRepeats(true);
+gameLoop.start();
     }
 
     public void loadMap() {
@@ -213,11 +240,21 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
     }
 
     public void paintComponent(Graphics g) {
+    	
+
+    	 
         super.paintComponent(g);
         draw(g);
     }
 
     public void draw(Graphics g) {
+    	
+    	 // Draw energy icons at the top
+        for (int i = 0; i < GameOverDialog.getEnergy(); i++) {
+            g.drawImage(energyIcon, 10 + (i * 40), 40, 30, 30, this);
+        }
+    	
+    	
         g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         int mapWidth = columnCount * tileSize;
         int mapHeight = rowCount * tileSize;
@@ -240,10 +277,6 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
             g.drawString("Game Over", tileSize / 2, tileSize / 2);
         } else {
             g.drawString("Score: " + score, tileSize / 2, tileSize / 2);
-        }
-
-        if (score == 700) {
-            JOptionPane.showMessageDialog(null, "Mission Complete!", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
@@ -282,11 +315,27 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        foods.removeIf(food -> collision(pacman, food));
-        score = (700 - foods.size() * 10);
-        if (foods.isEmpty() && !gameOver) {
-            JOptionPane.showMessageDialog(null, "Mission Complete!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            startGame();
+        foods.removeIf(food -> {
+    if (collision(pacman, food)) {
+        score++;
+        return true;
+    }
+    return false;
+});
+        if (score >= 10 && !gameOver) {
+        	gameOver = true;
+        	
+        	
+            MissionCompleteDialog missionDialog = new MissionCompleteDialog(null, roadMapWindow);
+            missionDialog.showMissionComplete();
+            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+        if (frame != null) {
+            frame.dispose();
+            }
+            this.setVisible(false);
+             roadMapWindow.unlockGame4();
+        
+        
         }
     }
 

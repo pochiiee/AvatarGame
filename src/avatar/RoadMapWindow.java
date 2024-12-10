@@ -90,7 +90,7 @@ public class RoadMapWindow extends JFrame {
         game3Button.addActionListener(e -> {
             if (!game1Button.isLocked()) {
             
-            new Game3();
+            new Game3(this);
             	
             } else {
                 JOptionPane.showMessageDialog(this, "Game 3 is locked! Complete the required steps to unlock.");
@@ -207,10 +207,10 @@ public class RoadMapWindow extends JFrame {
     }
     
     public void unlockGame4() {
-        game3Button.setLocked(false); // Unlock Game 2
-        game2Button.setText("Completed"); // Update Game 1 button text
-        game2Button.setForeground(Color.RED); // Change text color to red
-        game2Button.setEnabled(false); // Optionally disable Game 1 button
+        game4Button.setLocked(false); // Unlock Game 2
+        game3Button.setText("Completed"); // Update Game 1 button text
+        game3Button.setForeground(Color.RED); // Change text color to red
+        game3Button.setEnabled(false); // Optionally disable Game 1 button
         JOptionPane.showMessageDialog(this, "Game 4 Unlocked!"); // Notify the player
 
     }
