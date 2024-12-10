@@ -110,12 +110,26 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
         gameLoop = new Timer(16, this); // Around 60 FPS
         placeObstacleTimer = new Timer(2000, e -> placeObstacles());
         
-        // Show the start screen first before the main game window
         SwingUtilities.invokeLater(() -> {
-            StartScreen startScreen = new StartScreen(null, this);
-            startScreen.setVisible(true);
+            // Create a temporary JFrame for the StartScreen parent
+            JFrame tempFrame = new JFrame();
+            tempFrame.setUndecorated(true); // Hide the frame decorations
+            tempFrame.setSize(400, 380); // Match StartScreen dimensions
+            tempFrame.setLocationRelativeTo(null); // Center on screen
 
-            // Once start screen is disposed, set up the game frame
+            // Show the StartScreen dialog
+            new StartScreen(
+                tempFrame,
+                "src/img/airmission1.png",
+                new Color(10, 180, 190),
+                null
+            ).setVisible(true);
+
+            tempFrame.dispose(); // Dispose of the temporary frame after StartScreen closes
+            
+            playbutton();
+
+            // Set up the main game window
             JFrame frame = new JFrame("Flappy Bird Game");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setUndecorated(false); // Keep the title bar
@@ -128,8 +142,6 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
             frame.setVisible(true);
         });
 
-
-      
     }
 
     // Method to dispose of the play button
@@ -139,80 +151,7 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
         requestFocusInWindow(); // Request focus so the panel is ready for key events
     }
 
-    class StartScreen extends JDialog {
-        public StartScreen(JFrame parent, Game4 game) {
-            super(parent, true);
-
-            // Remove title bar
-            setUndecorated(true);
-
-            // Add a custom border for styling
-            getRootPane().setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
-
-            setSize(400, 380); // Define dialog size
-            setLocationRelativeTo(parent); // Center the dialog on the parent
-            setResizable(false); // Disable resizing
-            setLayout(null);
-
-            // Custom panel for background and text rendering
-            JPanel backgroundPanel = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g;
-
-                    // Enable high-quality rendering
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-
-                    // Draw the main image
-                    try {
-                        BufferedImage image = ImageIO.read(getClass().getResource("/img/airmission1.png"));
-                        Image scaledImage = image.getScaledInstance(380, 310, Image.SCALE_SMOOTH);
-                        g2.drawImage(scaledImage, 10, 10, null);
-                    } catch (IOException | NullPointerException e) {
-                        g2.setColor(Color.RED);
-                        g2.drawString("Error: air mission image not found", 10, 20);
-                    }
-                }
-            };
-            backgroundPanel.setBounds(0, 0, 400, 380);
-            backgroundPanel.setLayout(null);
-            backgroundPanel.setOpaque(false);
-            add(backgroundPanel);
-
-            // Start Button with hover effect
-            JButton startButton = new JButton("Start");
-            startButton.setFont(new Font("Arial", Font.BOLD, 14));
-            startButton.setFocusPainted(false);
-            startButton.setBackground(new Color(10, 180, 190));
-            startButton.setForeground(Color.WHITE);
-            startButton.setBounds(150, 330, 100, 40);
-            startButton.setBorderPainted(false);
-            startButton.setOpaque(true);
-
-            // Hover effect
-            Color originalColor = startButton.getBackground();
-            Color hoverColor = originalColor.darker();
-            startButton.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    startButton.setBackground(hoverColor);
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    startButton.setBackground(originalColor);
-                }
-            });
-
-            startButton.addActionListener(e -> {
-                dispose(); // Close the start screen
-                game.playbutton(); // Trigger the game's start method
-            });
-            backgroundPanel.add(startButton);
-        }
-    }
-
+   
     class Bird {
         int x, y, width, height;
         Image img;
@@ -348,7 +287,13 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
             if (collision(bird, obstacle)) {
                 gameOver = true;
                 gameStarted = false;
-                handleGameOver("You hit a cloud!");
+                
+                GameOverDialog.decrementEnergy();
+                // Call GameOverDialog and pass a lambda for restarting the game
+                GameOverDialog.handleGameOver(
+                    SwingUtilities.getWindowAncestor(this), // Pass the parent window
+                    this::startGame // Restart the game using the GamePanel instance
+                );
                 break;
             }
         }
@@ -356,7 +301,12 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
         if (bird.y > boardHeight) {
             gameOver = true;
             gameStarted = false;
-            handleGameOver("You fell down!");
+            energy--;
+            // Call GameOverDialog and pass a lambda for restarting the game
+            GameOverDialog.handleGameOver(
+                SwingUtilities.getWindowAncestor(this), // Pass the parent window
+                this::startGame // Restart the game using the GamePanel instance
+            );
         }
 
         if (score >= MISSION_SCORE) {
@@ -380,12 +330,9 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
 
             	 roadMapWindow.dispose();
             	 
-            	 
-            	  String username = LoginWindow.getLoggedInUsername();  // Get the logged-in username
-                  AccountManager.updatePlayerStatus(username);  // Update status
                   
-            	// You can also hide Game3 here if it's not already done
-            	Game4.this.setVisible(false);
+//            	// You can also hide Game3 here if it's not already done
+//            	Game4.this.setVisible(false);
             	
             	new LastWindow();
                
@@ -483,139 +430,8 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void keyTyped(KeyEvent e) {}
+    
+    
 
-    private void handleGameOver(String message) {
-        energy--; // Decrease energy by 1
-
-        if (energy > 0) {
-            // Get the parent window (if applicable)
-            Window parentWindow = SwingUtilities.getWindowAncestor(this);
-            JDialog gameOverDialog = new JDialog(parentWindow);
-            gameOverDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            gameOverDialog.setUndecorated(true); // Remove the title bar and window decorations
-
-            // Load and scale the game over image
-            ImageIcon icon = new ImageIcon(getClass().getResource("/img/gameover.png"));
-            Image scaledImage = icon.getImage().getScaledInstance(305, 220, Image.SCALE_SMOOTH);
-
-            // Create a custom panel for the image and buttons
-            JPanel imagePanel = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    super.paintComponent(g);
-                    g.drawImage(scaledImage, 0, 0, getWidth(), getHeight(), this);
-                }
-            };
-            imagePanel.setLayout(null); // Use absolute positioning
-            imagePanel.setPreferredSize(new Dimension(305, 220));
-            imagePanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 5)); // Optional border
-
-            // Create and style Play Again button
-            JButton playAgainButton = new JButton("Play");
-            playAgainButton.setBackground(new Color(165, 42, 42)); // Brown background
-            playAgainButton.setForeground(Color.WHITE);           // White text
-            playAgainButton.setFont(new Font("Arial", Font.BOLD, 14));
-            playAgainButton.setFocusPainted(false);
-            playAgainButton.setBorderPainted(false);
-            playAgainButton.setOpaque(true);
-
-            playAgainButton.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    playAgainButton.setBackground(playAgainButton.getBackground().darker());
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    playAgainButton.setBackground(new Color(165, 42, 42));
-                }
-            });
-
-            // Create and style Exit button
-            JButton exitButton = new JButton("Exit");
-            exitButton.setBackground(new Color(165, 42, 42)); // Brown background
-            exitButton.setForeground(Color.WHITE);           // White text
-            exitButton.setFont(new Font("Arial", Font.BOLD, 14));
-            exitButton.setFocusPainted(false);
-            exitButton.setBorderPainted(false);
-            exitButton.setOpaque(true);
-
-            exitButton.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    exitButton.setBackground(exitButton.getBackground().darker());
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    exitButton.setBackground(new Color(165, 42, 42));
-                }
-            });
-
-            // Position buttons
-            int buttonWidth = 80;
-            int buttonHeight = 25;
-            int gap = 10; // Gap between buttons
-            int totalButtonsWidth = (buttonWidth * 2) + gap;
-            int xStart = (305 - totalButtonsWidth) / 2;
-            int yPosition = 220 - buttonHeight - 10;
-
-            playAgainButton.setBounds(xStart, yPosition, buttonWidth, buttonHeight);
-            exitButton.setBounds(xStart + buttonWidth + gap, yPosition, buttonWidth, buttonHeight);
-
-            // Add action listeners to buttons
-            playAgainButton.addActionListener(e -> {
-                gameOverDialog.dispose();
-                startGame(); // Restart the game only when this button is clicked
-            });
-
-            exitButton.addActionListener(e -> {
-                gameOverDialog.dispose();
-                System.exit(0); // Exit the application
-            });
-
-            // Add buttons to the image panel
-            imagePanel.add(playAgainButton);
-            imagePanel.add(exitButton);
-
-            // Set the image panel as the dialog's content
-            gameOverDialog.setContentPane(imagePanel);
-            gameOverDialog.pack();
-            gameOverDialog.setLocationRelativeTo(this);
-            gameOverDialog.setVisible(true);
-        } else {
-        	
-        	// Show Mission Failed dialog
-        	MissionFailedDialog dialog = new MissionFailedDialog(null, roadMapWindow);
-        	dialog.showMissionFailed(); // Show the dialog
-
-        	// Make the window invisible first
-        	this.setVisible(false);
-
-        	// Now dispose the parent window (or Game3)
-        	Window parentWindow = (Window) SwingUtilities.getWindowAncestor(Game4.this);
-        	if (parentWindow != null) {
-        	    parentWindow.dispose();  // Dispose the parent window
-        	}
-
-        	 roadMapWindow.dispose();
-        	// You can also hide Game3 here if it's not already done
-        	Game4.this.setVisible(false);
-
-        }
-    }
    
-
-    // Helper method to add hover effect to buttons
-    private void addHoverEffect(JButton button, Color normalColor, Color hoverColor) {
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(MouseEvent evt) {
-                button.setBackground(hoverColor);
-            }
-
-            public void mouseExited(MouseEvent evt) {
-                button.setBackground(normalColor);
-            }
-        });
-    }
 }

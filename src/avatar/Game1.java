@@ -11,17 +11,19 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class Game1 extends JFrame {
-
     private final RoadMapWindow roadMapWindow;
-    private int energy = 3; // Player starts with 3 energy points
 
     public Game1(RoadMapWindow roadMapWindow) {
     	
         this.roadMapWindow = roadMapWindow;
 
         // Show Start Screen first
-        StartScreen startScreen = new StartScreen(this); // Pass this Game1 instance to StartScreen
-        startScreen.setVisible(true);
+        new StartScreen(
+        	    this,
+        	    "src/img/watermision1.png",
+        	    new Color(0, 155, 155),
+        	    null
+        	).setVisible(true);
 
         // Configure the main game frame
         setExtendedState(JFrame.MAXIMIZED_BOTH); // Full-screen mode
@@ -31,91 +33,6 @@ public class Game1 extends JFrame {
         setVisible(false); // Initially hidden until the StartScreen closes
     }
 
-
-    static class StartScreen extends JDialog {
-        public StartScreen(Game1 parent) {
-            super(parent, true); // Make it modal to block interaction with the Game1 frame
-
-            // Remove title bar
-            setUndecorated(true);
-
-            // Add custom border to mimic window frame without title bar
-            getRootPane().setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
-
-            setSize(400, 380); // Updated size
-            setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-            setLocationRelativeTo(null); // Center the dialog
-            setResizable(false); // Disable resizing
-            setLayout(null);
-
-            // Custom panel for background and text rendering
-            JPanel backgroundPanel = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    // Do not call super.paintComponent(g); to prevent filling the background
-                    Graphics2D g2 = (Graphics2D) g;
-
-                    // Enable high-quality rendering for images and text
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-
-                    // Draw the main image without white background
-                    try {
-                        BufferedImage image = ImageIO.read(new File("src/img/watermision1.png"));
-                        Image scaledImage = image.getScaledInstance(380, 310, Image.SCALE_SMOOTH);
-
-                        int imageX = 10;
-                        int imageY = 10;
-
-                        // Draw the image
-                        g2.drawImage(scaledImage, imageX, imageY, null);
-
-                    } catch (IOException e) {
-                        g2.setColor(Color.RED);
-                        g2.drawString("Failed to load background image", 10, 20);
-                    }
-                }
-            };
-            backgroundPanel.setBounds(0, 0, 400, 380);
-            backgroundPanel.setLayout(null);
-            backgroundPanel.setOpaque(false); // Make the panel transparent
-            add(backgroundPanel);
-
-            // Add Start Button
-            JButton startButton = new JButton("Start");
-            startButton.setFont(new Font("Arial", Font.BOLD, 14));
-            startButton.setFocusPainted(false);
-            startButton.setBackground(new Color(0, 155, 155)); // Aqua Blue color);
-            startButton.setForeground(Color.WHITE);
-            startButton.setBounds((400 - 100) / 2, 330, 100, 40);
-
-            startButton.setBorderPainted(false); // Remove button border
-            startButton.setOpaque(true);
-
-            // Add hover effect to the button
-            Color originalColor = startButton.getBackground();
-            Color hoverColor = originalColor.darker();
-
-            startButton.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    startButton.setBackground(hoverColor);
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    startButton.setBackground(originalColor);
-                }
-            });
-
-            startButton.addActionListener(e -> {
-                dispose(); // Close the StartScreen dialog
-                SwingUtilities.invokeLater(() -> parent.setVisible(true)); // Make the Game1 frame visible after disposing
-            });
-            backgroundPanel.add(startButton);
-        }
-    }
 
     // Main Game Panel
     class GamePanel extends JPanel implements ActionListener {
@@ -189,7 +106,7 @@ public class Game1 extends JFrame {
             }
         }
 
-        private void startGame() {
+        public void startGame() {
             WIDTH = getWidth() / TILE_SIZE;
             HEIGHT = getHeight() / TILE_SIZE;
 
@@ -291,18 +208,29 @@ public class Game1 extends JFrame {
             if (head.x < 0 || head.x >= WIDTH || head.y < 0 || head.y >= HEIGHT) {
                 gameOver = true;
                 timer.stop();
-                handleGameOver("You hit the wall!");
+
+                // Call GameOverDialog and pass a lambda for restarting the game
+                GameOverDialog.handleGameOver(
+                    SwingUtilities.getWindowAncestor(this), // Pass the parent window
+                    this::startGame // Restart the game using the GamePanel instance
+                );
             }
 
             for (int i = 1; i < snake.size(); i++) {
                 if (head.equals(snake.get(i))) {
                     gameOver = true;
                     timer.stop();
-                    handleGameOver("You ran into yourself!");
+
+                    // Call GameOverDialog again
+                    GameOverDialog.handleGameOver(
+                        SwingUtilities.getWindowAncestor(this),
+                        this::startGame
+                    );
                     break;
                 }
             }
         }
+
 
         private boolean isCollidingWithFood(Point head) {
             int headX = head.x * TILE_SIZE;
@@ -316,124 +244,6 @@ public class Game1 extends JFrame {
 
             return headX < foodX + foodSize && headX + headSize > foodX &&
                     headY < foodY + foodSize && headY + headSize > foodY;
-        }
-
-        private void handleGameOver(String message) {
-            energy--; // Decrease energy by 1
-
-            if (energy > 0) {
-                // Get the parent window (if applicable)
-                Window parentWindow = SwingUtilities.getWindowAncestor(this);
-                JDialog gameOverDialog = new JDialog(parentWindow);
-                gameOverDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                gameOverDialog.setUndecorated(true); // Remove the title bar and window decorations
-
-                // Load and scale the game over image to 305x220 pixels
-                ImageIcon icon = new ImageIcon("src/img/gameover.png");
-                Image scaledImage = icon.getImage().getScaledInstance(305, 220, Image.SCALE_SMOOTH);
-
-                // Create a custom panel that displays the image and overlays buttons
-                JPanel imagePanel = new JPanel() {
-                    @Override
-                    protected void paintComponent(Graphics g) {
-                        super.paintComponent(g);
-                        // Draw the image as the background
-                        g.drawImage(scaledImage, 0, 0, getWidth(), getHeight(), this);
-                    }
-                };
-                imagePanel.setLayout(null); // Use absolute positioning
-                imagePanel.setPreferredSize(new Dimension(305, 220));
-
-                // Magdagdag ng gray na gilid sa image panel
-                imagePanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 5));
-
-                // Create the buttons
-                JButton playAgainButton = new JButton("Play Again");
-                JButton exitButton = new JButton("Exit");
-
-                // Set buttons' background color to brown
-                Color brown = new Color(165, 42, 42); // Brown color
-                Color darkBrown = brown.darker();     // Darker shade of brown for hover effect
-
-                playAgainButton.setBackground(brown);
-                exitButton.setBackground(brown);
-
-                // Set foreground color to white for contrast
-                playAgainButton.setForeground(Color.WHITE);
-                exitButton.setForeground(Color.WHITE);
-
-                // Ensure buttons are opaque so the background color is visible
-                playAgainButton.setOpaque(true);
-                playAgainButton.setContentAreaFilled(true);
-                exitButton.setOpaque(true);
-                exitButton.setContentAreaFilled(true);
-
-                // Remove border for a flat look
-                playAgainButton.setBorderPainted(false);
-                exitButton.setBorderPainted(false);
-
-                // Set buttons' size and position them over the image
-                int buttonWidth = 80;  // Smaller width
-                int buttonHeight = 25; // Smaller height
-                int gap = 10; // Gap between buttons
-
-                // Calculate positions based on image size
-                int totalButtonsWidth = (buttonWidth * 2) + gap;
-                int xStart = (305 - totalButtonsWidth) / 2; // Center buttons horizontally
-                int yPosition = 220 - buttonHeight - 10;     // Position buttons near the bottom (adjusted for border)
-
-                playAgainButton.setBounds(xStart, yPosition, buttonWidth, buttonHeight);
-                exitButton.setBounds(xStart + buttonWidth + gap, yPosition, buttonWidth, buttonHeight);
-
-                // Add action listeners to the buttons
-                playAgainButton.addActionListener(e -> {
-                    gameOverDialog.dispose();
-                    startGame(); // Restart the game
-                });
-
-                exitButton.addActionListener(e -> {
-                    gameOverDialog.dispose();
-                    System.exit(0); // Exit the application
-                });
-
-                // Add hover effect to buttons
-                addHoverEffect(playAgainButton, brown, darkBrown);
-                addHoverEffect(exitButton, brown, darkBrown);
-
-                // Add buttons to the image panel
-                imagePanel.add(playAgainButton);
-                imagePanel.add(exitButton);
-
-                // Set the image panel as the content pane of the dialog
-                gameOverDialog.setContentPane(imagePanel);
-
-                // Set the dialog properties
-                gameOverDialog.pack();
-                gameOverDialog.setLocationRelativeTo(this);
-                gameOverDialog.setVisible(true);
-            } else {
-                // Force the GamePanel to repaint and update the energy icons
-                repaint();
-                paintImmediately(0, 0, getWidth(), getHeight());
-
-                // Show failed image and transition to WelcomeWindow
-                MissionFailedDialog dialog = new MissionFailedDialog(Game1.this, roadMapWindow);
-                dialog.showMissionFailed();
-                dispose();
-                roadMapWindow.dispose();
-            }
-        }
-
-        // Helper method to add hover effect to buttons
-        private void addHoverEffect(JButton button, Color normalColor, Color hoverColor) {
-            button.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    button.setBackground(hoverColor);
-                }
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    button.setBackground(normalColor);
-                }
-            });
         }
 
 
@@ -452,7 +262,7 @@ public class Game1 extends JFrame {
             g.drawString("Score: " + score, 10, 30);
 
             // Draw energy icons at the top
-            for (int i = 0; i < energy; i++) {
+            for (int i = 0; i < GameOverDialog.getEnergy(); i++) {
                 g.drawImage(energyIcon, 10 + (i * 40), 40, 30, 30, this);
             }
 

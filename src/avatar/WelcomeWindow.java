@@ -6,21 +6,22 @@ import java.awt.event.*;
 
 public class WelcomeWindow extends JFrame {
 	
-	
-//private final RoadMapWindow roadMapWindow;
-//   
+//	private final RoadMapWindow roadMapWindow;
+
     public static void main(String[] args) {
     	
 
-//    	 RoadMapWindow roadMapWindow = new RoadMapWindow();
-    	 new Game3();
+//    	RoadMapWindow roadMapWindow = new RoadMapWindow();
+  	new Game3();
+//    	
+//new RoadMapWindow();
     }
 
     private Image backgroundImage;
 
     public WelcomeWindow() {
     	
-//    	roadMapWindow = new RoadMapWindow();
+//    roadMapWindow = new RoadMapWindow();
        
 
         // Load the background image

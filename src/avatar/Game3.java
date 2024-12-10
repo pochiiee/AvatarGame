@@ -1,11 +1,8 @@
 package avatar;
 
 import javax.swing.*;
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -13,17 +10,11 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
     private static final long serialVersionUID = 1L;
 
     class Block {
-        int x;
-        int y;
-        int width;
-        int height;
+        int x, y, width, height;
         Image image;
-
-        int startX;
-        int startY;
+        int startX, startY;
         char direction = 'U'; // U D L R
-        int velocityX = 0;
-        int velocityY = 0;
+        int velocityX = 0, velocityY = 0;
 
         Block(Image image, int x, int y, int width, int height) {
             this.image = image;
@@ -83,54 +74,52 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
     private final Image princessAzulaImage;
     private final Image kuviraImage;
     private final Image goldCoinImage;
-
     private final Image avatarUpImage;
     private final Image avatarDownImage;
     private final Image avatarLeftImage;
     private final Image avatarRightImage;
 
     private final String[] tileMap = {
-            "XXXXXXXXXXXXXXXXXXX",
-            "X        X        X",
-            "X XX XXX X XXX XX X",
-            "X                 X",
-            "X XX X XXXXX X XX X",
-            "X    X       X    X",
-            "XXXX XXXX XXXX XXXX",
-            "OOOX X       X XOOO",
-            "XXXX X XXrXX X XXXX",
-            "X       bpo       X",
-            "XXXX X XXXXX X XXXX",
-            "OOOX X       X XOOO",
-            "XXXX X XXXXX X XXXX",
-            "X        X        X",
-            "X XX XXX X XXX XX X",
-            "X  X     P     X  X",
-            "XX X X XXXXX X X XX",
-            "X    X   X   X    X",
-            "X XXXXXX X XXXXXX X",
-            "X                 X",
-            "XXXXXXXXXXXXXXXXXXX"
+        "XXXXXXXXXXXXXXXXXXX",
+        "X        X        X",
+        "X XX XXX X XXX XX X",
+        "X                 X",
+        "X XX X XXXXX X XX X",
+        "X    X       X    X",
+        "XXXX XXXX XXXX XXXX",
+        "OOOX X       X XOOO",
+        "XXXX X XXrXX X XXXX",
+        "X       bpo       X",
+        "XXXX X XXXXX X XXXX",
+        "OOOX X       X XOOO",
+        "XXXX X XXXXX X XXXX",
+        "X        X        X",
+        "X XX XXX X XXX XX X",
+        "X  X     P     X  X",
+        "XX X X XXXXX X X XX",
+        "X    X   X   X    X",
+        "X XXXXXX X XXXXXX X",
+        "X                 X",
+        "XXXXXXXXXXXXXXXXXXX"
     };
 
-    HashSet<Block> walls;
-    HashSet<Block> foods;
-    HashSet<Block> ghosts;
-    Block pacman;
+    private HashSet<Block> walls;
+    private HashSet<Block> foods;
+    private HashSet<Block> ghosts;
+    private Block pacman;
 
     private Image backgroundImage;
 
-    Timer gameLoop;
-    char[] directions = {'U', 'D', 'L', 'R'};
-    Random random = new Random();
-    int score = 0;
-    int lives = 3;
-    boolean gameOver = false;
+    private Timer gameLoop;
+    private char[] directions = {'U', 'D', 'L', 'R'};
+    private Random random = new Random();
+    private int score;
+    private boolean gameOver;
 
     public Game3() {
         JFrame frame = new JFrame("Pac-Man");
 
-        goldCoinImage = new ImageIcon("/img/powerFood.png").getImage();
+        goldCoinImage = new ImageIcon("src/powerFood.png").getImage();
         backgroundImage = new ImageIcon("src/bgfire.png").getImage();
 
         setLayout(new BorderLayout());
@@ -149,135 +138,79 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
         zukoImage = new ImageIcon(getClass().getResource("/img/zuko.png")).getImage();
         princessAzulaImage = new ImageIcon(getClass().getResource("/img/princessAzula.png")).getImage();
         kuviraImage = new ImageIcon(getClass().getResource("/img/kuvira.png")).getImage();
-
         avatarUpImage = new ImageIcon(getClass().getResource("/img/up.png")).getImage();
         avatarDownImage = new ImageIcon(getClass().getResource("/img/down.png")).getImage();
         avatarLeftImage = new ImageIcon(getClass().getResource("/img/left.png")).getImage();
         avatarRightImage = new ImageIcon(getClass().getResource("/img/right.png")).getImage();
 
-        new StartScreen(frame).setVisible(true);
-        loadMap();
-        for (Block ghost : ghosts) {
-            char newDirection = directions[random.nextInt(4)];
-            ghost.updateDirection(newDirection);
-        }
-        gameLoop = new Timer(60, this); // 20fps
-        gameLoop.start();
+        new StartScreen(
+            frame,
+            "src/img/fireMission.png",
+            new Color(124, 15, 15),
+            null
+        ).setVisible(true);
+
+        startGame();
+
         frame.setVisible(true);
     }
 
-    class StartScreen extends JDialog {
-        public StartScreen(JFrame parent) {
-            super(parent, true);
-
-            setUndecorated(true);
-            getRootPane().setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
-
-            setSize(400, 380);
-            setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-            setLocationRelativeTo(null);
-            setResizable(false);
-            setLayout(null);
-
-            JPanel backgroundPanel = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g;
-
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-
-                    try {
-                        BufferedImage image = ImageIO.read(getClass().getResource("/img/fireMission.png"));
-                        Image scaledImage = image.getScaledInstance(380, 310, Image.SCALE_SMOOTH);
-                        g2.drawImage(scaledImage, 10, 10, null);
-                    } catch (IOException e) {
-                        g2.setColor(Color.RED);
-                        g2.drawString("Failed to load background image", 10, 20);
-                    }
-                }
-            };
-            backgroundPanel.setBounds(0, 0, 400, 380);
-            backgroundPanel.setLayout(null);
-            backgroundPanel.setOpaque(false);
-            add(backgroundPanel);
-
-            JButton startButton = new JButton("Start");
-            startButton.setFont(new Font("Arial", Font.BOLD, 14));
-            startButton.setFocusPainted(false);
-            startButton.setBackground(new Color(124, 15, 15));
-            startButton.setForeground(Color.WHITE);
-            startButton.setBounds((400 - 100) / 2, 330, 100, 40);
-
-            startButton.setBorderPainted(false);
-            startButton.setOpaque(true);
-
-            Color originalColor = startButton.getBackground();
-            Color hoverColor = originalColor.darker();
-
-            startButton.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    startButton.setBackground(hoverColor);
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    startButton.setBackground(originalColor);
-                }
-            });
-
-            startButton.addActionListener(e -> dispose());
-            backgroundPanel.add(startButton);
-        }
+    private void startGame() {
+        loadMap();
+        resetPositions();
+        score = 0;
+        gameOver = false;
+        gameLoop = new Timer(60, this); // 20fps
+        gameLoop.start();
     }
 
-
     public void loadMap() {
-        walls = new HashSet<Block>();
-        foods = new HashSet<Block>();
-        ghosts = new HashSet<Block>();
+        walls = new HashSet<>();
+        foods = new HashSet<>();
+        ghosts = new HashSet<>();
 
         for (int r = 0; r < rowCount; r++) {
             for (int c = 0; c < columnCount; c++) {
-                String row = tileMap[r];
-                char tileMapChar = row.charAt(c);
+                char tileMapChar = tileMap[r].charAt(c);
+                int x = c * tileSize;
+                int y = r * tileSize;
 
-                int x = c*tileSize;
-                int y = r*tileSize;
-
-                if (tileMapChar == 'X') { //block wall
-                    Block wall = new Block(wallImage, x, y, tileSize, tileSize);
-                    walls.add(wall);
-                }
-                else if (tileMapChar == 'b') { //blue ghost
-                    Block ghost = new Block(lordOzaiImage, x, y, tileSize, tileSize);
-                    ghosts.add(ghost);
-                }
-                else if (tileMapChar == 'o') { //orange ghost
-                    Block ghost = new Block(zukoImage, x, y, tileSize, tileSize);
-                    ghosts.add(ghost);
-                }
-                else if (tileMapChar == 'p') { //pink ghost
-                    Block ghost = new Block(princessAzulaImage, x, y, tileSize, tileSize);
-                    ghosts.add(ghost);
-                }
-                else if (tileMapChar == 'r') { //red ghost
-                    Block ghost = new Block(kuviraImage, x, y, tileSize, tileSize);
-                    ghosts.add(ghost);
-                }
-                else if (tileMapChar == 'P') { //pacman
-                    pacman = new Block(avatarRightImage, x, y, tileSize, tileSize);
-                }
-                else if (tileMapChar == ' ') { //food
-                    Block food = new Block(goldCoinImage, x + 14, y + 14, 6, 6);
-                    foods.add(food);
+                switch (tileMapChar) {
+                    case 'X':
+                        walls.add(new Block(wallImage, x, y, tileSize, tileSize));
+                        break;
+                    case 'b':
+                        ghosts.add(new Block(lordOzaiImage, x, y, tileSize, tileSize));
+                        break;
+                    case 'o':
+                        ghosts.add(new Block(zukoImage, x, y, tileSize, tileSize));
+                        break;
+                    case 'p':
+                        ghosts.add(new Block(princessAzulaImage, x, y, tileSize, tileSize));
+                        break;
+                    case 'r':
+                        ghosts.add(new Block(kuviraImage, x, y, tileSize, tileSize));
+                        break;
+                    case 'P':
+                        pacman = new Block(avatarRightImage, x, y, tileSize, tileSize);
+                        break;
+                    case ' ':
+                        foods.add(new Block(goldCoinImage, x + 14, y + 14, 6, 6));
+                        break;
                 }
             }
         }
     }
 
+    public void resetPositions() {
+        pacman.reset();
+        pacman.velocityX = 0;
+        pacman.velocityY = 0;
+        for (Block ghost : ghosts) {
+            ghost.reset();
+            ghost.updateDirection(directions[random.nextInt(4)]);
+        }
+    }
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -286,40 +219,36 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
 
     public void draw(Graphics g) {
         g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-
         int mapWidth = columnCount * tileSize;
         int mapHeight = rowCount * tileSize;
         int xOffset = (getWidth() - mapWidth) / 7;
         int yOffset = (getHeight() - mapHeight) / 7;
 
         g.drawImage(pacman.image, pacman.x + xOffset, pacman.y + yOffset, pacman.width, pacman.height, null);
-
         for (Block ghost : ghosts) {
             g.drawImage(ghost.image, ghost.x + xOffset, ghost.y + yOffset, ghost.width, ghost.height, null);
         }
-
         for (Block wall : walls) {
             g.drawImage(wall.image, wall.x + xOffset, wall.y + yOffset, wall.width, wall.height, null);
         }
-
-        g.setColor(Color.WHITE);
         for (Block food : foods) {
             g.drawImage(food.image, food.x + xOffset, food.y + yOffset, food.width, food.height, null);
         }
 
         g.setFont(new Font("Arial", Font.PLAIN, 18));
         if (gameOver) {
-            g.drawString("Game Over: " + String.valueOf(score), tileSize / 2, tileSize / 2);
+            g.drawString("Game Over", tileSize / 2, tileSize / 2);
         } else {
-            g.drawString("x" + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize / 2, tileSize / 2);
+            g.drawString("Score: " + score, tileSize / 2, tileSize / 2);
         }
 
         if (score == 700) {
-            JOptionPane.showMessageDialog(null,
-                    "Mission Complete!",
-                    "Success",
-                    JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Mission Complete!", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
+    }
+
+    public boolean collision(Block a, Block b) {
+        return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
     }
 
     public void move() {
@@ -335,20 +264,9 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
         }
 
         for (Block ghost : ghosts) {
-            if (collision(ghost, pacman)) {
-                lives -= 1;
-                if (lives == 0) {
-                    gameOver = true;
-                    return;
-                }
-                resetPositions();
-            }
-
-            if (ghost.y == tileSize * 9 && ghost.direction != 'U' && ghost.direction != 'D') {
-                ghost.updateDirection('U');
-            }
             ghost.x += ghost.velocityX;
             ghost.y += ghost.velocityY;
+
             for (Block wall : walls) {
                 if (collision(ghost, wall)) {
                     ghost.x -= ghost.velocityX;
@@ -356,35 +274,19 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
                     ghost.updateDirection(directions[random.nextInt(4)]);
                 }
             }
-        }
 
-        for (Block food : foods) {
-            if (collision(food, pacman)) {
-                foods.remove(food);
-                score += 10;
-                if (foods.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Level complete!", "You Win!", JOptionPane.INFORMATION_MESSAGE);
-                    loadMap();
-                }
-                break;
+            if (collision(pacman, ghost)) {
+                gameOver = true;
+                GameOverDialog.handleGameOver(SwingUtilities.getWindowAncestor(this), this::startGame);
+                return;
             }
         }
-    }
-    public boolean collision(Block a, Block b) {
-        return  a.x < b.x + b.width &&
-                a.x + a.width > b.x &&
-                a.y < b.y + b.height &&
-                a.y + a.height > b.y;
-    }
 
-    public void resetPositions() {
-        pacman.reset();
-        pacman.velocityX = 0;
-        pacman.velocityY = 0;
-        for (Block ghost : ghosts) {
-            ghost.reset();
-            char newDirection = directions[random.nextInt(4)];
-            ghost.updateDirection(newDirection);
+        foods.removeIf(food -> collision(pacman, food));
+        score = (700 - foods.size() * 10);
+        if (foods.isEmpty() && !gameOver) {
+            JOptionPane.showMessageDialog(null, "Mission Complete!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            startGame();
         }
     }
 
@@ -406,54 +308,22 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
     @Override
     public void keyReleased(KeyEvent e) {
         if (gameOver) {
-            loadMap();
-            resetPositions();
-            lives = 3;
-            score = 0;
-            gameOver = false;
-            gameLoop.start();
-        }
-        // System.out.println("KeyEvent: " + e.getKeyCode());
-        if (e.getKeyCode() == KeyEvent.VK_UP) {
-            pacman.updateDirection('U');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-            pacman.updateDirection('D');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-            pacman.updateDirection('L');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-            pacman.updateDirection('R');
+            GameOverDialog.handleGameOver(SwingUtilities.getWindowAncestor(this), this::startGame);
+            return;
         }
 
-        if (pacman.direction == 'U') {
-            pacman.image = avatarUpImage;
-        }
-        else if (pacman.direction == 'D') {
-            pacman.image = avatarDownImage;
-        }
-        else if (pacman.direction == 'L') {
-            pacman.image = avatarLeftImage;
-        }
-        else if (pacman.direction == 'R') {
-            pacman.image = avatarRightImage;
-        }
-    }
-
-
-    class BackgroundPanel extends JPanel {
-        private Image backgroundImage;
-
-        public BackgroundPanel() {
-            backgroundImage = new ImageIcon("src/bgfire.png").getImage();
-            System.out.println("Backgroud panel test");
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_UP -> pacman.updateDirection('U');
+            case KeyEvent.VK_DOWN -> pacman.updateDirection('D');
+            case KeyEvent.VK_LEFT -> pacman.updateDirection('L');
+            case KeyEvent.VK_RIGHT -> pacman.updateDirection('R');
         }
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+        switch (pacman.direction) {
+            case 'U' -> pacman.image = avatarUpImage;
+            case 'D' -> pacman.image = avatarDownImage;
+            case 'L' -> pacman.image = avatarLeftImage;
+            case 'R' -> pacman.image = avatarRightImage;
         }
     }
 }
