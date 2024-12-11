@@ -24,7 +24,7 @@ public class CreateAccountWindow extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         // Load the background image
-        ImageIcon icon = new ImageIcon("src/createaccbg.png"); // Use your uploaded image
+        ImageIcon icon = new ImageIcon("src/img/createaccbg.png"); // Use your uploaded image
         backgroundImage = icon.getImage();
 
         // Create a custom panel for the background

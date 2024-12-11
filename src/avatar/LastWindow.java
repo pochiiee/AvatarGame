@@ -10,10 +10,10 @@ public class LastWindow extends JFrame {
     private Image backgroundImage;
 
     public LastWindow() {
-       
-    	String username = LoginWindow.getLoggedInUsername();  // Get the logged-in username
+
+        String username = LoginWindow.getLoggedInUsername();  // Get the logged-in username
         AccountManager.updatePlayerStatus(username);  // Update status
-    
+
         // Load the background image
         ImageIcon icon = new ImageIcon("src/img/end.png");
         backgroundImage = icon.getImage();
@@ -39,9 +39,9 @@ public class LastWindow extends JFrame {
         };
         backgroundPanel.setLayout(null); // Use null layout for absolute positioning
         setContentPane(backgroundPanel); // Set as content pane for the frame
-        
-        
-     // Add Start Button
+
+
+        // Add Start Button
         JButton startButton = new JButton("Ok");
         startButton.setFont(new Font("Arial", Font.BOLD, 18));
         int buttonWidth = 150;
@@ -72,8 +72,22 @@ public class LastWindow extends JFrame {
 
         // Action Listener for Start Button
         startButton.addActionListener(e -> {
-            System.exit(0); // Exit
-            dispose(); // Close this window
+            // Load a new image when the button is clicked
+            ImageIcon newIcon = new ImageIcon("src/img/next.png"); // New image path
+            backgroundImage = newIcon.getImage();
+
+            // Repaint the background panel to show the new image
+            backgroundPanel.repaint();
+
+            // Remove the button after it is clicked
+            startButton.setVisible(false);
+
+            // Start a timer to close the window after 10 seconds
+            Timer timer = new Timer(5000, evt -> {
+                System.exit(0); // Exit the system after 10 seconds
+            });
+            timer.setRepeats(false); // Make sure the timer runs only once
+            timer.start();
         });
 
         // Add a component listener to handle resizing (adjust as needed)
@@ -95,8 +109,6 @@ public class LastWindow extends JFrame {
         });
 
         setVisible(true);
-
-
 
     }
 }

@@ -167,6 +167,19 @@ public class Game2 extends JFrame {
                                 score += 5; // Increment score for a match
                                 scoreLabel.setText("Score: " + score);
 
+                                // Game ends as soon as a match is found
+                                	SwingUtilities.invokeLater(() -> {
+                                		MissionCompleteDialog missionDialog = new MissionCompleteDialog(Game2.this, roadMapWindow);
+                                		missionDialog.showMissionComplete();
+                                		frame.dispose();
+                                		Game2.this.setVisible(false); // Hide the current Game2 window
+                                		roadMapWindow.unlockGame3();
+                                	});
+                            }
+                            /*} else {
+                                score += 5; // Increment score for a match
+                                scoreLabel.setText("Score: " + score);
+
                                 card1Selected = null;
                                 card2Selected = null;
                             }
@@ -180,7 +193,7 @@ public class Game2 extends JFrame {
                                     roadMapWindow.unlockGame3();
                                 });
 
-                            }
+                            }*/
                         }
                     }
                 }

@@ -11,10 +11,10 @@ private final RoadMapWindow roadMapWindow;
     public static void main(String[] args) {
     	
 
- 	RoadMapWindow roadMapWindow = new RoadMapWindow();
-  	new Game3(roadMapWindow);
+RoadMapWindow roadMapWindow = new RoadMapWindow();
+  	new Game4(roadMapWindow);
 //    	
-//new RoadMapWindow();
+//     new StoryWindow();
     }
 
     private Image backgroundImage;

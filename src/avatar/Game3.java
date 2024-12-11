@@ -1,3 +1,4 @@
+
 package avatar;
 
 import javax.swing.*;
@@ -7,16 +8,23 @@ import java.util.HashSet;
 import java.util.Random;
 
 public class Game3 extends JPanel implements ActionListener, KeyListener {
+
     private static final long serialVersionUID = 1L;
     private final RoadMapWindow roadMapWindow;
     private Image energyIcon;
 
     class Block {
-        int x, y, width, height;
+        int x;
+        int y;
+        int width;
+        int height;
         Image image;
-        int startX, startY;
+
+        int startX;
+        int startY;
         char direction = 'U'; // U D L R
-        int velocityX = 0, velocityY = 0;
+        int velocityX = 0;
+        int velocityY = 0;
 
         Block(Image image, int x, int y, int width, int height) {
             this.image = image;
@@ -45,28 +53,20 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
         }
 
         void updateVelocity() {
-            int speed = tileSize / 4; // Keeps the original speed
-            switch (this.direction) {
-                case 'U' -> { 
-                    this.velocityX = 0; 
-                    this.velocityY = -speed; 
-                }
-                case 'D' -> { 
-                    this.velocityX = 0; 
-                    this.velocityY = speed; 
-                }
-                case 'L' -> { 
-                    this.velocityX = -speed; 
-                    this.velocityY = 0; 
-                }
-                case 'R' -> { 
-                    this.velocityX = speed; 
-                    this.velocityY = 0; 
-                }
+            if (this.direction == 'U') {
+                this.velocityX = 0;
+                this.velocityY = -tileSize / 4;
+            } else if (this.direction == 'D') {
+                this.velocityX = 0;
+                this.velocityY = tileSize / 4;
+            } else if (this.direction == 'L') {
+                this.velocityX = -tileSize / 4;
+                this.velocityY = 0;
+            } else if (this.direction == 'R') {
+                this.velocityX = tileSize / 4;
+                this.velocityY = 0;
             }
         }
-
-
 
         void reset() {
             this.x = this.startX;
@@ -76,7 +76,7 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
 
     private final int rowCount = 21;
     private final int columnCount = 19;
-    private final int tileSize = 32;
+    private final int tileSize = 40;
 
     private final Image wallImage;
     private final Image lordOzaiImage;
@@ -84,57 +84,56 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
     private final Image princessAzulaImage;
     private final Image kuviraImage;
     private final Image goldCoinImage;
+
     private final Image avatarUpImage;
     private final Image avatarDownImage;
     private final Image avatarLeftImage;
     private final Image avatarRightImage;
 
     private final String[] tileMap = {
-        "XXXXXXXXXXXXXXXXXXX",
-        "X        X        X",
-        "X XX XXX X XXX XX X",
-        "X                 X",
-        "X XX X XXXXX X XX X",
-        "X    X       X    X",
-        "XXXX XXXX XXXX XXXX",
-        "OOOX X       X XOOO",
-        "XXXX X XXrXX X XXXX",
-        "X       bpo       X",
-        "XXXX X XXXXX X XXXX",
-        "OOOX X       X XOOO",
-        "XXXX X XXXXX X XXXX",
-        "X        X        X",
-        "X XX XXX X XXX XX X",
-        "X  X     P     X  X",
-        "XX X X XXXXX X X XX",
-        "X    X   X   X    X",
-        "X XXXXXX X XXXXXX X",
-        "X                 X",
-        "XXXXXXXXXXXXXXXXXXX"
+            "XXXXXXXXXXXXXXXXXXX",
+            "X        X        X",
+            "X XX XXX X XXX XX X",
+            "X                 X",
+            "X XX X XXXXX X XX X",
+            "X    X       X    X",
+            "XXXX XXXX XXXX XXXX",
+            "OOOX X       X XOOO",
+            "XXXX X XXrXX X XXXX",
+            "X       bpo       X",
+            "XXXX X XXXXX X XXXX",
+            "OOOX X       X XOOO",
+            "XXXX X XXXXX X XXXX",
+            "X        X        X",
+            "X XX XXX X XXX XX X",
+            "X  X     P     X  X",
+            "XX X X XXXXX X X XX",
+            "X    X   X   X    X",
+            "X XXXXXX X XXXXXX X",
+            "X                 X",
+            "XXXXXXXXXXXXXXXXXXX"
     };
 
-    private HashSet<Block> walls;
-    private HashSet<Block> foods;
-    private HashSet<Block> ghosts;
-    private Block pacman;
+    HashSet<Block> walls;
+    HashSet<Block> foods;
+    HashSet<Block> ghosts;
+    Block pacman;
 
     private Image backgroundImage;
 
-    private Timer gameLoop;
-    private char[] directions = {'U', 'D', 'L', 'R'};
-    private Random random = new Random();
-    private int score;
-    private boolean gameOver;
-
-    
+    Timer gameLoop;
+    char[] directions = {'U', 'D', 'L', 'R'};
+    Random random = new Random();
+    int score = 0;
+    int lives = 3;
+    boolean gameOver = false;
 
     public Game3(RoadMapWindow roadMapWindow) {
-    	
-    	 this.roadMapWindow = roadMapWindow;
-        JFrame frame = new JFrame("Pac-Man");
+        this.roadMapWindow = roadMapWindow;
+        JFrame frame = new JFrame("Fire Element Challenge");
 
-        goldCoinImage = new ImageIcon("src/powerFood.png").getImage();
-        backgroundImage = new ImageIcon("src/bgfire.png").getImage();
+        goldCoinImage = new ImageIcon("src/img/powerFood.png").getImage();
+        backgroundImage = new ImageIcon("src/img/bgfire.png").getImage();
 
         setLayout(new BorderLayout());
         addKeyListener(this);
@@ -152,23 +151,27 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
         zukoImage = new ImageIcon(getClass().getResource("/img/zuko.png")).getImage();
         princessAzulaImage = new ImageIcon(getClass().getResource("/img/princessAzula.png")).getImage();
         kuviraImage = new ImageIcon(getClass().getResource("/img/kuvira.png")).getImage();
+
         avatarUpImage = new ImageIcon(getClass().getResource("/img/up.png")).getImage();
         avatarDownImage = new ImageIcon(getClass().getResource("/img/down.png")).getImage();
         avatarLeftImage = new ImageIcon(getClass().getResource("/img/left.png")).getImage();
         avatarRightImage = new ImageIcon(getClass().getResource("/img/right.png")).getImage();
-        energyIcon = new ImageIcon("/img/energy.png").getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-        
-        
-        
+
         new StartScreen(
-            frame,
-            "src/img/fireMission.png",
-            new Color(124, 15, 15),
-            null
+                frame,
+                "src/img/fireMission.png",
+                new Color(124, 15, 15),
+                null
         ).setVisible(true);
 
         startGame();
-
+        /*loadMap();
+        for (Block ghost : ghosts) {
+            char newDirection = directions[random.nextInt(4)];
+            ghost.updateDirection(newDirection);
+        }
+        gameLoop = new Timer(60, this); // 20fps
+        gameLoop.start();*/
         frame.setVisible(true);
     }
 
@@ -178,17 +181,17 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
         score = 0;
         gameOver = false;
         if (gameLoop != null) {
-    gameLoop.stop();
-}
-gameLoop = new Timer(60, e -> {
-    move();
-    repaint();
-    if (gameOver) {
-        gameLoop.stop();
-    }
-});
-gameLoop.setRepeats(true);
-gameLoop.start();
+            gameLoop.stop();
+        }
+        gameLoop = new Timer(60, e -> {
+            move();
+            repaint();
+            if (gameOver) {
+                gameLoop.stop();
+            }
+        });
+        gameLoop.setRepeats(true);
+        gameLoop.start();
     }
 
     public void loadMap() {
@@ -229,59 +232,47 @@ gameLoop.start();
         }
     }
 
-    public void resetPositions() {
-        pacman.reset();
-        pacman.velocityX = 0;
-        pacman.velocityY = 0;
-        for (Block ghost : ghosts) {
-            ghost.reset();
-            ghost.updateDirection(directions[random.nextInt(4)]);
-        }
-    }
-
     public void paintComponent(Graphics g) {
-    	
-
-    	 
         super.paintComponent(g);
         draw(g);
     }
 
     public void draw(Graphics g) {
-    	
-    	 // Draw energy icons at the top
         for (int i = 0; i < GameOverDialog.getEnergy(); i++) {
             g.drawImage(energyIcon, 10 + (i * 40), 40, 30, 30, this);
         }
-    	
-    	
+
         g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+
         int mapWidth = columnCount * tileSize;
         int mapHeight = rowCount * tileSize;
         int xOffset = (getWidth() - mapWidth) / 7;
         int yOffset = (getHeight() - mapHeight) / 7;
 
         g.drawImage(pacman.image, pacman.x + xOffset, pacman.y + yOffset, pacman.width, pacman.height, null);
+
         for (Block ghost : ghosts) {
             g.drawImage(ghost.image, ghost.x + xOffset, ghost.y + yOffset, ghost.width, ghost.height, null);
         }
+
         for (Block wall : walls) {
             g.drawImage(wall.image, wall.x + xOffset, wall.y + yOffset, wall.width, wall.height, null);
         }
+
+        g.setColor(Color.WHITE);
         for (Block food : foods) {
             g.drawImage(food.image, food.x + xOffset, food.y + yOffset, food.width, food.height, null);
         }
 
-        g.setFont(new Font("Arial", Font.PLAIN, 18));
+        g.setFont(new Font("Arial", Font.PLAIN, 70));
+        g.setColor(Color.WHITE); // Ensure the text is visible
         if (gameOver) {
-            g.drawString("Game Over", tileSize / 2, tileSize / 2);
+            g.drawString("", 830, 100); // Adjusted position for score and lives
         } else {
-            g.drawString("Score: " + score, tileSize / 2, tileSize / 2);
-        }
-    }
+            g.drawString("Lives: " + GameOverDialog.getEnergy() , 990, 100); // Adjusted position for score and lives
+            g.drawString("Score: " + score, 990, 250); // Adjusted position for score and lives
 
-    public boolean collision(Block a, Block b) {
-        return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+        }
     }
 
     public void move() {
@@ -297,9 +288,17 @@ gameLoop.start();
         }
 
         for (Block ghost : ghosts) {
+            if (collision(ghost, pacman)) {
+                gameOver = true;
+                GameOverDialog.handleGameOver(SwingUtilities.getWindowAncestor(this), this::startGame);
+                return;
+            }
+
+            if (ghost.y == tileSize * 9 && ghost.direction != 'U' && ghost.direction != 'D') {
+                ghost.updateDirection('U');
+            }
             ghost.x += ghost.velocityX;
             ghost.y += ghost.velocityY;
-
             for (Block wall : walls) {
                 if (collision(ghost, wall)) {
                     ghost.x -= ghost.velocityX;
@@ -307,35 +306,46 @@ gameLoop.start();
                     ghost.updateDirection(directions[random.nextInt(4)]);
                 }
             }
-
-            if (collision(pacman, ghost)) {
-                gameOver = true;
-                GameOverDialog.handleGameOver(SwingUtilities.getWindowAncestor(this), this::startGame);
-                return;
-            }
         }
 
         foods.removeIf(food -> {
-    if (collision(pacman, food)) {
-        score++;
-        return true;
-    }
-    return false;
-});
-        if (score >= 10 && !gameOver) {
-        	gameOver = true;
-        	
-        	
+            if (collision(pacman, food)) {
+                score++;
+                return true;
+            }
+            return false;
+        });
+        if (score > 50 && !gameOver) {
+            gameOver = true;
+
+
             MissionCompleteDialog missionDialog = new MissionCompleteDialog(null, roadMapWindow);
             missionDialog.showMissionComplete();
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        if (frame != null) {
-            frame.dispose();
+            if (frame != null) {
+                frame.dispose();
             }
             this.setVisible(false);
-             roadMapWindow.unlockGame4();
-        
-        
+            roadMapWindow.unlockGame4();
+
+
+        }
+    }
+
+    public boolean collision(Block a, Block b) {
+        return  a.x < b.x + b.width &&
+                a.x + a.width > b.x &&
+                a.y < b.y + b.height &&
+                a.y + a.height > b.y;
+    }
+
+    public void resetPositions() {
+        pacman.reset();
+        pacman.velocityX = 0;
+        pacman.velocityY = 0;
+        for (Block ghost : ghosts) {
+            ghost.reset();
+            ghost.updateDirection(directions[random.nextInt(4)]);
         }
     }
 
@@ -357,22 +367,38 @@ gameLoop.start();
     @Override
     public void keyReleased(KeyEvent e) {
         if (gameOver) {
-            GameOverDialog.handleGameOver(SwingUtilities.getWindowAncestor(this), this::startGame);
-            return;
+            loadMap();
+            resetPositions();
+            lives = 3;
+            score = 0;
+            gameOver = false;
+            gameLoop.start();
+        }
+        // System.out.println("KeyEvent: " + e.getKeyCode());
+        if (e.getKeyCode() == KeyEvent.VK_UP) {
+            pacman.updateDirection('U');
+        }
+        else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+            pacman.updateDirection('D');
+        }
+        else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+            pacman.updateDirection('L');
+        }
+        else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            pacman.updateDirection('R');
         }
 
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_UP -> pacman.updateDirection('U');
-            case KeyEvent.VK_DOWN -> pacman.updateDirection('D');
-            case KeyEvent.VK_LEFT -> pacman.updateDirection('L');
-            case KeyEvent.VK_RIGHT -> pacman.updateDirection('R');
+        if (pacman.direction == 'U') {
+            pacman.image = avatarUpImage;
         }
-
-        switch (pacman.direction) {
-            case 'U' -> pacman.image = avatarUpImage;
-            case 'D' -> pacman.image = avatarDownImage;
-            case 'L' -> pacman.image = avatarLeftImage;
-            case 'R' -> pacman.image = avatarRightImage;
+        else if (pacman.direction == 'D') {
+            pacman.image = avatarDownImage;
+        }
+        else if (pacman.direction == 'L') {
+            pacman.image = avatarLeftImage;
+        }
+        else if (pacman.direction == 'R') {
+            pacman.image = avatarRightImage;
         }
     }
 }
