@@ -236,8 +236,6 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
     }
 
    
-
-
     void startGame() {
   
         gameStarted = true;

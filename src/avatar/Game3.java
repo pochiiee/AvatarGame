@@ -156,6 +156,17 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
         avatarDownImage = new ImageIcon(getClass().getResource("/img/down.png")).getImage();
         avatarLeftImage = new ImageIcon(getClass().getResource("/img/left.png")).getImage();
         avatarRightImage = new ImageIcon(getClass().getResource("/img/right.png")).getImage();
+        energyIcon = new ImageIcon(getClass().getResource("/img/energy.png")).getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+
+        if (energyIcon == null) {
+            System.out.println("Energy icon not loaded correctly!");
+        } else {
+            System.out.println("Energy icon loaded successfully!");
+        }
+
+
+
+
 
         new StartScreen(
                 frame,
@@ -238,16 +249,26 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
     }
 
     public void draw(Graphics g) {
-        for (int i = 0; i < GameOverDialog.getEnergy(); i++) {
-            g.drawImage(energyIcon, 10 + (i * 40), 40, 30, 30, this);
-        }
-
+    
+    	
+        // Rest of the game drawing logic
         g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
 
         int mapWidth = columnCount * tileSize;
         int mapHeight = rowCount * tileSize;
         int xOffset = (getWidth() - mapWidth) / 7;
         int yOffset = (getHeight() - mapHeight) / 7;
+        
+        // Draw energy icons at the top
+     // Draw energy icons with larger size
+     // Draw enlarged energy icons with original spacing
+  	  for (int i = 0; i < lives; i++) {
+  		 int x = 990 + (i * 55); // Increase spacing to 55 pixels
+  	    int y = 100;            // Position icons slightly below the text
+          g.drawImage(energyIcon, x, y, 40, 40, this); // Enlarged icon: 40x40 size
+      }
+
+
 
         g.drawImage(pacman.image, pacman.x + xOffset, pacman.y + yOffset, pacman.width, pacman.height, null);
 
@@ -267,13 +288,18 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
         g.setFont(new Font("Arial", Font.PLAIN, 70));
         g.setColor(Color.WHITE); // Ensure the text is visible
         if (gameOver) {
-            g.drawString("", 830, 100); // Adjusted position for score and lives
+        	
+        	 
+    
+             g.drawString("Score: " + score, 990, 250); // Adjusted position for score and lives
+//            g.drawString("", 830, 100); // Adjusted position for score and lives
         } else {
-            g.drawString("Lives: " + GameOverDialog.getEnergy() , 990, 100); // Adjusted position for score and lives
-            g.drawString("Score: " + score, 990, 250); // Adjusted position for score and lives
 
+//            g.drawString("Lives: " + GameOverDialog.getEnergy(), 990, 100); // Adjusted position for score and lives
+            g.drawString("Score: " + score, 990, 250); // Adjusted position for score and lives
         }
     }
+
 
     public void move() {
         pacman.x += pacman.velocityX;
@@ -290,6 +316,10 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
         for (Block ghost : ghosts) {
             if (collision(ghost, pacman)) {
                 gameOver = true;
+                
+                lives--;
+                repaint();
+                
                 GameOverDialog.handleGameOver(SwingUtilities.getWindowAncestor(this), this::startGame);
                 return;
             }

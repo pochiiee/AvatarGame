@@ -12,7 +12,7 @@ private final RoadMapWindow roadMapWindow;
     	
 
 RoadMapWindow roadMapWindow = new RoadMapWindow();
-  	new Game4(roadMapWindow);
+  	new Game2(roadMapWindow);
 //    	
 //     new StoryWindow();
     }
