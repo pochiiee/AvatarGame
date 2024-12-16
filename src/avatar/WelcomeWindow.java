@@ -19,10 +19,10 @@ RoadMapWindow roadMapWindow = new RoadMapWindow();
 
     private Image backgroundImage;
 
-    public WelcomeWindow() {
-    	
-   roadMapWindow = new RoadMapWindow();
-       
+  public WelcomeWindow() {
+//    	
+ roadMapWindow = new RoadMapWindow();
+//       
 
         // Load the background image
         ImageIcon icon = new ImageIcon("src/img/welcomee.png");

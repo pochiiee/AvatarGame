@@ -80,7 +80,7 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
 
         // Load images
         try {
-            backgroundImg = new ImageIcon(getClass().getResource("/img/flappybirdbg.jpg")).getImage();
+            backgroundImg = new ImageIcon(getClass().getResource("/img/airbg.jpg")).getImage();
             birdImg = new ImageIcon(getClass().getResource("/img/flappybird.png")).getImage();
             cloudImg = new ImageIcon(getClass().getResource("/img/cloud.png")).getImage();
             energyIcon = new ImageIcon(getClass().getResource("/img/energy.png")).getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
@@ -192,28 +192,51 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
     }
 
 
-
     void playbutton() {
-    	
-    	  // Start Button
-        playButton = new JButton("Play");
-        playButton.setBounds((boardWidth - 80) / 2, (boardHeight / 2) + 200, 80, 40);
+        // Load the image as an Icon
+        ImageIcon playIcon = new ImageIcon("src/img/playbutton.png"); // Adjust the path if needed
 
+        // Resize the image to match the new button size
+        int buttonWidth = 130; // Adjusted width
+        int buttonHeight = 70; // Adjusted height
+        Image scaledImage = playIcon.getImage().getScaledInstance(buttonWidth, buttonHeight, Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+
+        // Create the play button
+        playButton = new JButton(scaledIcon);
+        playButton.setBounds((boardWidth - buttonWidth) / 2, (boardHeight / 2) + 200, buttonWidth, buttonHeight);
         playButton.setFocusable(false);
-        playButton.setFont(new Font("Arial", Font.BOLD, 20));
-        playButton.setBackground(new Color(30, 171, 205));
-        playButton.setForeground(Color.WHITE);
         playButton.setBorderPainted(false);
-        playButton.setOpaque(true);
+        playButton.setContentAreaFilled(false); // Makes the background transparent
+        playButton.setOpaque(false);
+
+        // Add hover effect for zooming
+        playButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                // Increase size slightly for zoom effect
+                Image zoomedImage = playIcon.getImage().getScaledInstance(buttonWidth + 20, buttonHeight + 10, Image.SCALE_SMOOTH);
+                playButton.setIcon(new ImageIcon(zoomedImage));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                // Revert to original size
+                playButton.setIcon(scaledIcon);
+            }
+        });
+
+        // Add action listener to start the game
         playButton.addActionListener(e -> {
             disposePlayButton(); // Dispose of the play button
             startGame(); // Start the game after disposing of the play button
- 
         });
 
         add(playButton);
-       
     }
+
+   
+
 
     void startGame() {
   
@@ -292,7 +315,7 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
         }
 
         // Draw the score
-        g.setColor(Color.ORANGE);
+        g.setColor(new Color(10, 180, 190));
         g.setFont(new Font("Arial", Font.BOLD, 48));
         g.drawString(String.valueOf((int) score), boardWidth / 2 - 25, 60);
 
@@ -307,19 +330,21 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
     public void move() {
         if (!gameStarted) return; // Exit if the game has not started
 
+        // Apply gravity to bird's vertical velocity
         velocityY += gravity;
         bird.y += velocityY;
 
-        if (bird.y < 0) bird.y = 0; // Prevent bird from going above the screen
+        // Prevent bird from going above the screen
+        if (bird.y < 0) bird.y = 0;
 
+        // Iterate through obstacles
         for (int i = 0; i < obstacles.size(); i++) {
             Obstacle obstacle = obstacles.get(i);
             obstacle.x += velocityX;
 
             // Check if the bird successfully jumps over the obstacle
-            // Only award score if the bird has passed over the cloud
             if (obstacle.x + obstacle.width < bird.x && !obstacleCleared(obstacle) && bird.y < obstacle.y) {
-                score += 5;
+                score += 5; // Increment score
                 markObstacleCleared(obstacle);
             }
 
@@ -330,18 +355,19 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
                 continue;
             }
 
-            // Collision detection
+            // Check for collision
             if (collision(bird, obstacle)) {
                 gameOver = true;
                 gameStarted = false;
 
                 // Decrease energy upon collision
                 energy--;
-                repaint(); // Ensure UI updates after energy change
+                repaint(); // Update UI to reflect changes
 
+                // Handle game over dialog
                 GameOverDialog.handleGameOver(
-                    SwingUtilities.getWindowAncestor(this), // Pass the parent window
-                    this::startGame // Restart the game using the GamePanel instance
+                    SwingUtilities.getWindowAncestor(this), // Parent window
+                    this::startGame // Restart game
                 );
                 break;
             }
@@ -354,15 +380,16 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
 
             // Decrease energy if the bird falls
             energy--;
-            repaint(); // Ensure UI updates after energy change
+            repaint(); // Update UI
 
+            // Handle game over dialog
             GameOverDialog.handleGameOver(
-                SwingUtilities.getWindowAncestor(this), // Pass the parent window
-                this::startGame // Restart the game using the GamePanel instance
+                SwingUtilities.getWindowAncestor(this), // Parent window
+                this::startGame // Restart game
             );
         }
 
-        // Check mission completion
+        // Check if mission is complete
         if (score >= MISSION_SCORE) {
             gameLoop.stop();
             placeObstacleTimer.stop();
@@ -370,9 +397,9 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
             SwingUtilities.invokeLater(() -> {
                 // Show Mission Complete dialog
                 MissionCompleteDialog dialog = new MissionCompleteDialog(null, roadMapWindow);
-                dialog.showMissionComplete(); // Show the dialog
+                dialog.showMissionComplete(); // Display dialog
 
-                // Make the window invisible
+                // Hide current game panel
                 this.setVisible(false);
 
                 // Dispose the parent window
@@ -383,6 +410,7 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
             });
         }
     }
+
 
 
 
@@ -490,6 +518,4 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
     public void keyTyped(KeyEvent e) {}
     
     
-
-   
 }
