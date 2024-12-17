@@ -12,17 +12,17 @@ private final RoadMapWindow roadMapWindow;
     	
 
 RoadMapWindow roadMapWindow = new RoadMapWindow();
-  	new Game2(roadMapWindow);
-//    	
-//     new StoryWindow();
+    	new Game4(roadMapWindow);
+    	
+//   new WelcomeWindow();
     }
 
     private Image backgroundImage;
 
   public WelcomeWindow() {
-//    	
+   	
  roadMapWindow = new RoadMapWindow();
-//       
+     
 
         // Load the background image
         ImageIcon icon = new ImageIcon("src/img/welcomee.png");
