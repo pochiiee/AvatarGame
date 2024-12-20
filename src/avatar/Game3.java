@@ -165,15 +165,27 @@ public class Game3 extends JPanel implements ActionListener, KeyListener {
         }
 
 
-
-
-
         new StartScreen(
                 frame,
                 "src/img/fireMission.png",
                 new Color(124, 15, 15),
-                null
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        GameManual gameManual = new GameManual(frame, "",new Color(0, 155, 155),null); // Use the main game frame as the parent
+                        gameManual.game3Manual(); // Start the manual
+                        gameManual.setVisible(true);
+                    }
+                }
         ).setVisible(true);
+
+
+//        new StartScreen(
+//                frame,
+//                "src/img/fireMission.png",
+//                new Color(124, 15, 15),
+//                null
+//        ).setVisible(true);
 
         startGame();
         /*loadMap();

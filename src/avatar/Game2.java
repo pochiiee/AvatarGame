@@ -10,8 +10,11 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class Game2 extends JFrame {
+	
+	private final RoadMapWindow roadMapWindow;
+    private JFrame parentFrame;
+    private Image energyIcon;
 
-    private final RoadMapWindow roadMapWindow;
 
     static class Card {
         String cardName;
@@ -44,7 +47,6 @@ public class Game2 extends JFrame {
 
     JFrame frame = new JFrame("Match Cards");
     JLabel errorLabel = new JLabel();
-    JLabel livesLabel = new JLabel();
     JLabel scoreLabel = new JLabel();
     JPanel textPanel = new JPanel();
     JPanel boardPanel = new JPanel();
@@ -63,12 +65,17 @@ public class Game2 extends JFrame {
         this.roadMapWindow = roadMapWindow;
      
         new StartScreen(
-        	    this,
-        	    "src/img/earthmission.png",
-        	    new Color(137, 95, 37),
-        	   null
-        	).setVisible(true);
-
+                this,
+                "src/img/earthmission.png",
+                new Color(137, 95, 37),new Runnable() {
+                @Override
+                public void run() {
+                    GameManual gameManual = new GameManual(frame, "",new Color(0, 155, 155),null); // Use the main game frame as the parent
+                    gameManual.game2Manual(); // Start the manual
+                    gameManual.setVisible(true);
+                }
+            }
+        ).setVisible(true);
         
         setupCards();
         shuffleCards();
@@ -83,12 +90,14 @@ public class Game2 extends JFrame {
         BackgroundPanel backgroundPanel = new BackgroundPanel();
         backgroundPanel.setLayout(new BorderLayout()); // Use BorderLayout for the background panel
         frame.add(backgroundPanel, BorderLayout.CENTER);
+        energyIcon = new ImageIcon(getClass().getResource("/img/energy.png")).getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
 
-        // error,lives, score
-        livesLabel.setFont(new Font("Arial", Font.PLAIN, 40));
-        livesLabel.setText("Lives: " + lives);
-        livesLabel.setForeground(Color.WHITE); // Set text color to white
-        livesLabel.setBounds(8, 50, 300, 30);  // Adjusted position for the first red line
+        if (energyIcon == null) {
+            System.out.println("Energy icon not loaded correctly!");
+        } else {
+            System.out.println("Energy icon loaded successfully!");
+        }
+
 
         errorLabel.setFont(new Font("Arial", Font.PLAIN, 40));
         errorLabel.setText("Errors: " + errorCount);
@@ -106,7 +115,6 @@ public class Game2 extends JFrame {
         textPanel.setLayout(null); // Use absolute layout for custom positioning
 
         // Add labels to the panel
-        textPanel.add(livesLabel);  // Add lives on the first red line
         textPanel.add(errorLabel);  // Error on the second red line
         textPanel.add(scoreLabel);  // Score on the third red line
 
@@ -150,8 +158,10 @@ public class Game2 extends JFrame {
                                 // Reduce lives after every 2 errors
                                 if (errorCount % 3 == 0) {
                                     lives--;
-                                    livesLabel.setText("Lives: " + lives);
-
+                               
+                                    textPanel.revalidate();
+                                    textPanel.repaint();
+                                    
                                     if (lives == 0) {
 
                                         MissionFailedDialog dialog = new MissionFailedDialog(Game2.this, roadMapWindow);
@@ -164,19 +174,6 @@ public class Game2 extends JFrame {
                                 }
                                 hideCardTimer.start();
                             } else {
-                                score += 5; // Increment score for a match
-                                scoreLabel.setText("Score: " + score);
-
-                                // Game ends as soon as a match is found
-                                	SwingUtilities.invokeLater(() -> {
-                                		MissionCompleteDialog missionDialog = new MissionCompleteDialog(Game2.this, roadMapWindow);
-                                		missionDialog.showMissionComplete();
-                                		frame.dispose();
-                                		Game2.this.setVisible(false); // Hide the current Game2 window
-                                		roadMapWindow.unlockGame3();
-                                	});
-                            }
-                            /*} else {
                                 score += 5; // Increment score for a match
                                 scoreLabel.setText("Score: " + score);
 
@@ -193,7 +190,7 @@ public class Game2 extends JFrame {
                                     roadMapWindow.unlockGame3();
                                 });
 
-                            }*/
+                            }
                         }
                     }
                 }
@@ -284,6 +281,18 @@ public class Game2 extends JFrame {
             super.paintComponent(g);
             // Draw the background image, scaling it to fill the panel
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            
+         // Draw energy icons at the top
+            // Draw energy icons with larger size
+            // Draw enlarged energy icons with original spacing
+            g.setFont(new Font("Arial", Font.PLAIN, 42));
+            g.setColor(Color.WHITE); // Ensure the text is visible
+            for (int i = 0; i < lives; i++) {
+                int x = 1360 + (i * 45);
+                int y = 50;
+                g.drawString("Lives: " , 1255, 80);
+                g.drawImage(energyIcon, x, y, 40, 40, this); // Enlarged icon: 40x40 size
+            }
         }
     }
 }

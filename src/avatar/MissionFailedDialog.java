@@ -159,7 +159,7 @@ public class MissionFailedDialog {
 
         // Action Listener for Start Button
         startButton.addActionListener(e -> {
-            System.exit(0); // Exit the application
+           new WelcomeWindow();
             frame.dispose(); // Close the frame
         });
 

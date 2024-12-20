@@ -81,8 +81,8 @@ public class LastWindow extends JFrame {
             startButton.setVisible(false);
 
             // Start a timer to close the window after 10 seconds
-            Timer timer = new Timer(5000, evt -> {
-                System.exit(0); // Exit the system after 10 seconds
+            Timer timer = new Timer(10000, evt -> {
+            	   new WelcomeWindow();
             });
             timer.setRepeats(false); // Make sure the timer runs only once
             timer.start();
@@ -107,6 +107,8 @@ public class LastWindow extends JFrame {
         });
 
         setVisible(true);
+        
+
 
     }
 }

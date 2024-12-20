@@ -17,13 +17,27 @@ public class Game1 extends JFrame {
     	
         this.roadMapWindow = roadMapWindow;
 
-        // Show Start Screen first
+        
         new StartScreen(
-        	    this,
-        	    "src/img/watermision1.png",
-        	    new Color(0, 155, 155),
-        	    null
-        	).setVisible(true);
+                this,
+                "src/img/watermision1.png",
+                new Color(0, 155, 155),
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        GameManual gameManual = new GameManual(Game1.this,"",new Color(0, 155, 155),null); // Use the main game frame as the parent
+                        gameManual.game1Manual(); // Start the manual
+                        gameManual.setVisible(true);
+                    }
+                }
+        ).setVisible(true);
+        // Show Start Screen first
+//        new StartScreen(
+//        	    this,
+//        	    "src/img/watermision1.png",
+//        	    new Color(0, 155, 155),
+//        	    null
+//        	).setVisible(true);
 
         // Configure the main game frame
         setExtendedState(JFrame.MAXIMIZED_BOTH); // Full-screen mode
@@ -181,7 +195,7 @@ public class Game1 extends JFrame {
                     isSpecialFood = true;
                 }
 
-                if (score < 60) {
+                if (score < 5) {
                     spawnFood(); // Spawn a new food
                 }
             } else {

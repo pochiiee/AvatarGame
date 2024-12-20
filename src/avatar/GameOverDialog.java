@@ -1,7 +1,9 @@
 package avatar;
 
 import javax.swing.*;
+import javax.sound.sampled.*;
 import java.awt.*;
+import java.io.File;
 import java.awt.event.*;
 
 public class GameOverDialog {
@@ -29,6 +31,18 @@ public class GameOverDialog {
     public static boolean hasEnergy() {
         return energy > 0;
     }
+    
+    private static void playGameOverMusic() {
+        try {
+            File audioFile = new File("src/wavfile/gameovermusic.wav"); // Update path as needed
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     // Handle game-over scenario
     public static void handleGameOver(Window parentWindow, Runnable startGameAction) {
@@ -36,6 +50,8 @@ public class GameOverDialog {
         decrementEnergy();
 
         if (hasEnergy()) {
+        	
+        	  playGameOverMusic();
             JDialog gameOverDialog = new JDialog(parentWindow);
             gameOverDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             gameOverDialog.setUndecorated(true);

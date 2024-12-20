@@ -1,7 +1,9 @@
 package avatar;
 
 import javax.swing.*;
+import javax.sound.sampled.*;
 import java.awt.*;
+import java.io.File;
 import java.awt.event.*;
 
 public class MissionCompleteDialog {
@@ -26,7 +28,21 @@ public class MissionCompleteDialog {
         return proxyFrame;
     }
 
+    private static void playMissionCompleteMusic() {
+        try {
+            File audioFile = new File("src/wavfile/missioncompletemusic.wav"); // Update path as needed
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void showMissionComplete() {
+    	
+    	  playMissionCompleteMusic();
         // Create the dialog and set its properties
         JDialog missionCompleteDialog = new JDialog(parentFrame, true); // Modal dialog
         missionCompleteDialog.setSize(400, 270); // Dialog size

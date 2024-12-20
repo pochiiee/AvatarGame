@@ -116,14 +116,30 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
             tempFrame.setUndecorated(true); // Hide the frame decorations
             tempFrame.setSize(400, 380); // Match StartScreen dimensions
             tempFrame.setLocationRelativeTo(null); // Center on screen
-
+            
+            
             // Show the StartScreen dialog
             new StartScreen(
-                tempFrame,
-                "src/img/airmission1.png",
-                new Color(10, 180, 190),
-                null
+                    tempFrame,
+                    "src/img/airmission1.png",
+                    new Color(10, 180, 190),
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            GameManual gameManual = new GameManual(roadMapWindow, "",new Color(0, 155, 155),null); // Use the main game frame as the parent
+                            gameManual.game4Manual(); // Start the manual
+                            gameManual.setVisible(true);
+                        }
+                    }
             ).setVisible(true);
+
+            // Show the StartScreen dialog
+//            new StartScreen(
+//                tempFrame,
+//                "src/img/airmission1.png",
+//                new Color(10, 180, 190),
+//                null
+//            ).setVisible(true);
 
             tempFrame.dispose(); // Dispose of the temporary frame after StartScreen closes
             
@@ -401,7 +417,6 @@ public class Game4 extends JPanel implements ActionListener, KeyListener {
                 this.setVisible(false);
                 
                 roadMapWindow.dispose();
-
 
                 // Dispose the parent window
                 Window parentWindow = (Window) SwingUtilities.getWindowAncestor(Game4.this);
